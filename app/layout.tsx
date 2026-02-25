@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import GaPageTracker from "@/components/GaPageTracker";
 import { GlobalStructuredData } from "@/components/StructuredData";
@@ -75,6 +76,7 @@ export default function RootLayout({
           <main>{children}</main>
           <Footer />
         </div>
+        <SpeedInsights />
       </body>
     </html>
   );
