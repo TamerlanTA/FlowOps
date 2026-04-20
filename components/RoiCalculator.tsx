@@ -6,6 +6,88 @@ import { useEffect, useRef, useState } from "react";
 
 import Reveal from "@/components/Reveal";
 
+function BarChart({ monthlyCost, annualSavings }: { monthlyCost: number; annualSavings: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animRef = useRef<number>(0);
+  const progressRef = useRef(0);
+  const targetRef = useRef({ monthlyCost, annualSavings });
+
+  useEffect(() => {
+    targetRef.current = { monthlyCost, annualSavings };
+  }, [monthlyCost, annualSavings]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    progressRef.current = 0;
+
+    function draw() {
+      animRef.current = requestAnimationFrame(draw);
+      progressRef.current = Math.min(1, progressRef.current + 0.025);
+      const ease = 1 - Math.pow(1 - progressRef.current, 3);
+
+      const W = canvas!.offsetWidth;
+      canvas!.width = W * devicePixelRatio;
+      canvas!.height = 120 * devicePixelRatio;
+      ctx!.scale(devicePixelRatio, devicePixelRatio);
+      ctx!.clearRect(0, 0, W, 120);
+
+      const { monthlyCost, annualSavings } = targetRef.current;
+      const withAuto = monthlyCost * 12 * (1 - 0.55);
+      const manualAnnual = monthlyCost * 12;
+      const maxVal = Math.max(manualAnnual, withAuto, annualSavings, 1);
+
+      const bars = [
+        { label: "Manual / yr", value: manualAnnual, color: "rgba(244,63,94,0.72)" },
+        { label: "With Auto / yr", value: withAuto, color: "rgba(139,92,246,0.65)" },
+        { label: "Savings / yr", value: annualSavings, color: "rgba(0,212,192,0.8)" },
+      ];
+
+      const padL = 8;
+      const padR = 8;
+      const padB = 28;
+      const padT = 8;
+      const chartW = W - padL - padR;
+      const chartH = 120 - padT - padB;
+      const barW = (chartW / bars.length) * 0.52;
+      const gap = (chartW / bars.length) * 0.48;
+
+      bars.forEach((bar, i) => {
+        const x = padL + i * (barW + gap) + gap / 2;
+        const h = (bar.value / maxVal) * chartH * ease;
+        const y = padT + chartH - h;
+
+        ctx!.beginPath();
+        (ctx! as CanvasRenderingContext2D).roundRect(x, y, barW, h, [4, 4, 0, 0]);
+        ctx!.fillStyle = bar.color;
+        ctx!.fill();
+
+        ctx!.fillStyle = "rgba(255,255,255,0.5)";
+        ctx!.font = `500 9px 'DM Mono', monospace`;
+        ctx!.textAlign = "center";
+        ctx!.textBaseline = "top";
+        ctx!.fillText(bar.label, x + barW / 2, padT + chartH + 6);
+      });
+
+      if (progressRef.current >= 1) cancelAnimationFrame(animRef.current);
+    }
+
+    draw();
+    return () => cancelAnimationFrame(animRef.current);
+  }, [monthlyCost, annualSavings]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ width: "100%", height: "120px", display: "block" }}
+      aria-hidden="true"
+    />
+  );
+}
+
 function AnimatedValue({
   value,
   prefix = "",
@@ -318,6 +400,12 @@ export default function RoiCalculator() {
           </Reveal>
 
           <div className="lg:col-span-3" ref={resultsRef}>
+            <div className="mb-3 rounded-2xl p-4 liquid-glass sm:mb-4 sm:rounded-3xl sm:p-5">
+              <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-slate-400 sm:text-xs">
+                Annual Cost Breakdown
+              </p>
+              <BarChart monthlyCost={monthlyCost} annualSavings={annualSavings} />
+            </div>
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {results.map((result, index) => (
                 <ResultCard

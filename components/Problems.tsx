@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef } from "react";
 import { BarChart3, FileSpreadsheet, Repeat, UserX, Users } from "lucide-react";
 
 import Reveal from "@/components/Reveal";
@@ -35,6 +38,48 @@ const problems = [
   },
 ];
 
+function ProblemCard({ problem }: { problem: (typeof problems)[number] }) {
+  const glowRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLElement>(null);
+
+  const onMove = (e: React.MouseEvent) => {
+    const card = cardRef.current;
+    const glow = glowRef.current;
+    if (!card || !glow) return;
+    const rect = card.getBoundingClientRect();
+    glow.style.left = `${e.clientX - rect.left}px`;
+    glow.style.top = `${e.clientY - rect.top}px`;
+  };
+
+  return (
+    <article
+      ref={cardRef}
+      onMouseMove={onMove}
+      className="group relative overflow-hidden rounded-2xl p-6 transition-all duration-500 active:scale-[0.98] liquid-glass prismatic-edge sm:rounded-3xl sm:p-7 md:hover:-translate-y-1.5 md:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)]"
+    >
+      <div
+        ref={glowRef}
+        className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          width: "200px",
+          height: "200px",
+          background: "radial-gradient(circle, rgba(0,212,192,0.11) 0%, transparent 70%)",
+        }}
+        aria-hidden="true"
+      />
+      <div className="relative">
+        <div className="mb-4 flex size-11 items-center justify-center rounded-xl text-[#00d4c0] transition-transform duration-500 liquid-glass-subtle sm:mb-5 sm:size-12 sm:rounded-2xl md:group-hover:scale-110">
+          <problem.icon className="size-5" />
+        </div>
+        <h3 className="mb-1.5 text-base font-semibold text-white sm:mb-2 sm:text-lg">
+          {problem.title}
+        </h3>
+        <p className="text-sm leading-relaxed text-slate-300">{problem.description}</p>
+      </div>
+    </article>
+  );
+}
+
 export default function Problems() {
   return (
     <section id="about" className="relative px-5 py-16 sm:px-6 md:py-24 lg:py-32">
@@ -55,17 +100,7 @@ export default function Problems() {
         <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
           {problems.map((problem, index) => (
             <Reveal key={problem.title} variant="scale" index={index} staggerBase={100}>
-              <article className="group relative rounded-2xl p-6 transition-all duration-500 active:scale-[0.98] liquid-glass prismatic-edge sm:rounded-3xl sm:p-7 md:hover:-translate-y-1.5 md:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)]">
-                <div className="relative">
-                  <div className="mb-4 flex size-11 items-center justify-center rounded-xl text-[#00d4c0] transition-transform duration-500 liquid-glass-subtle sm:mb-5 sm:size-12 sm:rounded-2xl md:group-hover:scale-110">
-                    <problem.icon className="size-5" />
-                  </div>
-                  <h3 className="mb-1.5 text-base font-semibold text-white sm:mb-2 sm:text-lg">
-                    {problem.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed text-slate-300">{problem.description}</p>
-                </div>
-              </article>
+              <ProblemCard problem={problem} />
             </Reveal>
           ))}
         </div>

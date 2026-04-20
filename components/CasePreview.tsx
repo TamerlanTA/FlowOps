@@ -10,6 +10,7 @@ const cases = [
   {
     company: "E-commerce Brand",
     industry: "Retail",
+    ringColor: "#00d4c0",
     problem:
       "Manual order processing, no lead follow-up system, and 40+ hours/week spent on repetitive reporting tasks.",
     solution:
@@ -18,14 +19,15 @@ const cases = [
     imageAlt:
       "Workflow automation dashboard showing CRM pipeline, automated lead routing, and reporting widgets",
     results: [
-      { value: 68, suffix: "%", label: "Time Saved", decimals: 0 },
-      { value: 3.2, suffix: "x", label: "Lead Conversion", decimals: 1 },
-      { value: 12, suffix: " days", label: "Implementation", decimals: 0 },
+      { value: 68, suffix: "%", label: "Time Saved", max: 100 },
+      { value: 3.2, suffix: "x", label: "Lead Conversion", max: 5, decimals: 1 },
+      { value: 12, suffix: " days", label: "Implementation", max: 20 },
     ],
   },
   {
     company: "SaaS Startup",
     industry: "Technology",
+    ringColor: "#8b5cf6",
     problem:
       "Customer onboarding was entirely manual, support tickets were lost, and internal handoffs between teams created delays.",
     solution:
@@ -34,91 +36,107 @@ const cases = [
     imageAlt:
       "AI workflow systems map connecting onboarding, support routing, and operations handoff layers",
     results: [
-      { value: 74, suffix: "%", label: "Workload Reduced", decimals: 0 },
-      { value: 5, suffix: " min", label: "Avg Response Time", decimals: 0 },
-      { value: 10, suffix: " days", label: "Implementation", decimals: 0 },
+      { value: 74, suffix: "%", label: "Workload Reduced", max: 100 },
+      { value: 5, suffix: " min", label: "Avg Response Time", max: 60 },
+      { value: 10, suffix: " days", label: "Implementation", max: 20 },
     ],
   },
 ] as const;
 
-function AnimatedResult({
+function RingResult({
   value,
   suffix,
   label,
+  max,
   decimals = 0,
+  color,
   inView,
 }: {
   value: number;
   suffix: string;
   label: string;
+  max: number;
   decimals?: number;
+  color: string;
   inView: boolean;
 }) {
-  const [count, setCount] = useState(0);
+  const r = 30;
+  const circ = 2 * Math.PI * r;
+  const pct = Math.min(value / max, 1);
+  const [progress, setProgress] = useState(0);
   const raf = useRef<number>(0);
 
   useEffect(() => {
-    if (!inView) {
-      return;
-    }
-
-    const target = decimals > 0 ? value * 10 : value;
+    if (!inView) return;
     const start = performance.now();
-    const duration = 1600;
-
+    const duration = 1500;
     const step = (now: number) => {
       const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.round(target * eased));
-      if (progress < 1) {
-        raf.current = requestAnimationFrame(step);
-      }
+      const p = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setProgress(eased * pct);
+      if (p < 1) raf.current = requestAnimationFrame(step);
     };
-
     raf.current = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf.current);
-  }, [inView, value, decimals]);
+  }, [inView, pct]);
 
-  const display = decimals > 0 ? (count / 10).toFixed(decimals) : count;
+  const dashoffset = circ * (1 - progress);
+  const display = decimals > 0 ? value.toFixed(decimals) : value;
 
   return (
-    <div className="rounded-xl p-3 text-center liquid-glass-subtle sm:rounded-2xl sm:p-4">
-      <div className="text-lg font-bold text-[#00d4c0] sm:text-2xl md:text-3xl">
-        {display}
-        {suffix}
-      </div>
-      <div className="mt-0.5 text-[10px] font-medium text-slate-400 sm:mt-1 sm:text-xs">
-        {label}
-      </div>
+    <div className="flex flex-col items-center rounded-xl p-3 text-center liquid-glass-subtle sm:rounded-2xl sm:p-4">
+      <svg width="76" height="76" viewBox="0 0 76 76" className="mb-2" aria-hidden="true">
+        <circle cx="38" cy="38" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+        <circle
+          cx="38"
+          cy="38"
+          r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          strokeDashoffset={dashoffset}
+          transform="rotate(-90 38 38)"
+        />
+        <text
+          x="38"
+          y="38"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill="white"
+          fontSize="11"
+          fontWeight="700"
+          fontFamily="'DM Mono', monospace"
+        >
+          {display}{suffix}
+        </text>
+      </svg>
+      <div className="text-[10px] font-medium text-slate-400 sm:text-xs">{label}</div>
     </div>
   );
 }
 
 function CaseResults({
   results,
+  color,
 }: {
-  results: readonly { value: number; suffix: string; label: string; decimals: number }[];
+  results: (typeof cases)[number]["results"];
+  color: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
 
   useEffect(() => {
     const element = ref.current;
-    if (!element) {
-      return;
-    }
-
+    if (!element) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          observer.unobserve(element);
-        }
+        if (entry.isIntersecting) { setInView(true); observer.unobserve(element); }
       },
       { threshold: 0.4 },
     );
-
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
@@ -126,12 +144,14 @@ function CaseResults({
   return (
     <div ref={ref} className="grid grid-cols-3 gap-2 sm:gap-3">
       {results.map((result) => (
-        <AnimatedResult
+        <RingResult
           key={result.label}
           value={result.value}
           suffix={result.suffix}
           label={result.label}
-          decimals={result.decimals}
+          max={result.max}
+          decimals={"decimals" in result ? result.decimals : 0}
+          color={color}
           inView={inView}
         />
       ))}
@@ -197,7 +217,10 @@ export default function CasePreview() {
                   </div>
 
                   <div className="mb-6 flex items-center gap-3 sm:mb-8 sm:gap-4">
-                    <div className="flex size-10 items-center justify-center rounded-xl text-base font-bold text-[#00d4c0] transition-transform duration-500 liquid-glass-subtle sm:size-12 sm:rounded-2xl sm:text-lg md:group-hover:scale-110">
+                    <div
+                      className="flex size-10 items-center justify-center rounded-xl text-base font-bold transition-transform duration-500 liquid-glass-subtle sm:size-12 sm:rounded-2xl sm:text-lg md:group-hover:scale-110"
+                      style={{ color: caseItem.ringColor }}
+                    >
                       {caseItem.company[0]}
                     </div>
                     <div>
@@ -223,7 +246,7 @@ export default function CasePreview() {
                     </div>
                   </div>
 
-                  <CaseResults results={caseItem.results} />
+                  <CaseResults results={caseItem.results} color={caseItem.ringColor} />
                 </div>
               </article>
             </Reveal>
