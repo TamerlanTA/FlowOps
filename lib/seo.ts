@@ -12,7 +12,7 @@ export const SITE_URL = RAW_SITE_URL.endsWith("/")
 export const DEFAULT_OG_IMAGE = "/og/flowops-og.svg";
 
 export const DEFAULT_DESCRIPTION =
-  "FlowOps helps businesses eliminate manual operational chaos through AI-driven workflow automation, CRM integration, and system architecture consulting.";
+  "FlowOps designs and builds AI-powered automation systems for businesses, startups, and e-commerce teams.";
 
 export const PRIMARY_KEYWORDS = [
   "business process automation",

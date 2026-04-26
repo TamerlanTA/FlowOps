@@ -1,45 +1,14 @@
 import type { MetadataRoute } from "next";
-import { SITE_URL } from "@/lib/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://flowops.agency";
 
   return [
     {
-      url: `${SITE_URL}/`,
+      url: siteUrl,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
       priority: 1,
-      changeFrequency: "weekly",
-      lastModified,
-    },
-    {
-      url: `${SITE_URL}/services`,
-      priority: 0.95,
-      changeFrequency: "weekly",
-      lastModified,
-    },
-    {
-      url: `${SITE_URL}/approach`,
-      priority: 0.9,
-      changeFrequency: "monthly",
-      lastModified,
-    },
-    {
-      url: `${SITE_URL}/cases`,
-      priority: 0.9,
-      changeFrequency: "monthly",
-      lastModified,
-    },
-    {
-      url: `${SITE_URL}/contact`,
-      priority: 0.9,
-      changeFrequency: "weekly",
-      lastModified,
-    },
-    {
-      url: `${SITE_URL}/about`,
-      priority: 0.7,
-      changeFrequency: "monthly",
-      lastModified,
     },
   ];
 }
