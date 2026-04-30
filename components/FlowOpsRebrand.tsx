@@ -10,7 +10,6 @@ import {
   Gauge,
   Mail,
   Menu,
-  MessageCircle,
   Network,
   Play,
   Radar,
@@ -21,7 +20,7 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type RevenueRange =
   | "Under $250k"
@@ -33,7 +32,7 @@ type RevenueRange =
 type ContactState = "idle" | "sending" | "success" | "error";
 
 const navItems = [
-  { label: "Systems", href: "#systems" },
+  { label: "Offers", href: "#offers" },
   { label: "Cases", href: "#cases" },
   { label: "Method", href: "#method" },
   { label: "Contact", href: "#contact" },
@@ -48,27 +47,47 @@ const pains = [
   "AI is discussed often, but rarely wired into daily execution.",
 ] as const;
 
-const services = [
+const niches = [
+  { label: "Service businesses", icon: Gauge },
+  { label: "Agencies", icon: Network },
+  { label: "E-commerce", icon: Database },
+  { label: "Clinics & Coaches", icon: ShieldCheck },
+  { label: "Real estate", icon: Radar },
+  { label: "Startups", icon: Sparkles },
+] as const;
+
+const offers = [
   {
-    title: "Sales Automation",
-    icon: MessageCircle,
+    title: "Speed-to-Lead System",
+    icon: Zap,
+    price: "from $750+",
     summary:
-      "Lead capture, qualification, follow-up, routing, and conversion dashboards.",
-    points: ["CRM workflow automation", "Messenger and email sequences", "Live KPI visibility"],
+      "Every new lead gets an instant AI-powered response, CRM update, and automatic follow-up sequence - before your team even opens their laptop.",
+    points: ["AI lead qualification", "Automatic CRM updates", "Follow-up sequences"],
   },
   {
-    title: "Operations Automation",
+    title: "Ops Automation Sprint",
     icon: Network,
+    price: "from $1,000+",
     summary:
-      "Internal handoffs, approvals, reporting, alerts, and cross-tool execution.",
-    points: ["Task orchestration", "Automated reports", "ERP, CRM, support integrations"],
+      "In one week, we eliminate one repetitive workflow from your team's plate - data entry, handoffs, reports, approvals.",
+    points: ["Process mapping & design", "n8n / Make implementation", "Delivered in 5-7 business days"],
   },
   {
-    title: "AI Upgrade",
+    title: "AI Chatbot & Voice Agent",
     icon: Bot,
+    price: "from $1,500+",
     summary:
-      "Practical AI assistants and processing layers for existing business systems.",
-    points: ["Support and sales copilots", "Document processing", "Prompt and rollout standards"],
+      "Your business answers, qualifies, and routes leads 24/7 - without adding a single person to the team.",
+    points: ["24/7 AI responses", "Booking & CRM integration", "WhatsApp, website, voice channels"],
+  },
+  {
+    title: "Long-Term Partner Retainer",
+    icon: ShieldCheck,
+    price: "from $500+/month",
+    summary:
+      "After your first sprint, we stay as your dedicated automation partner - adding systems, monitoring performance, and scaling with your business.",
+    points: ["Ongoing automation builds", "System monitoring & support", "Priority delivery"],
   },
 ] as const;
 
@@ -108,12 +127,6 @@ const revenueRanges: RevenueRange[] = [
   "$5M - $20M",
   "$20M+",
 ];
-
-const builderExamples = [
-  "Qualify WhatsApp leads and update Kommo CRM",
-  "Turn Shopify orders into ClickUp tasks and Slack alerts",
-  "Research leads, score them with AI, and draft outreach",
-] as const;
 
 function EngineCanvas() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -273,53 +286,8 @@ function EngineCanvas() {
   return <canvas ref={canvasRef} className="engine-canvas" aria-hidden="true" />;
 }
 
-function SystemPreview({ prompt }: { prompt: string }) {
-  const nodes = useMemo(() => {
-    const lower = prompt.toLowerCase();
-    if (lower.includes("shopify")) {
-      return ["Shopify", "Rules", "ClickUp", "Slack"];
-    }
-    if (lower.includes("research") || lower.includes("lead")) {
-      return ["Lead list", "AI research", "Score", "Outreach"];
-    }
-    if (lower.includes("report") || lower.includes("dashboard")) {
-      return ["Data source", "Clean", "Dashboard", "Alerts"];
-    }
-    return ["Input", "AI engine", "CRM", "Output"];
-  }, [prompt]);
-
-  return (
-    <div className="system-preview" aria-label="Automation system preview">
-      <div className="preview-head">
-        <span>Live architecture</span>
-        <strong>{prompt ? "Mapped" : "Idle"}</strong>
-      </div>
-      <div className="node-row">
-        {nodes.map((node, index) => (
-          <div className="node-wrap" key={node}>
-            <div className="flow-node">
-              <span>0{index + 1}</span>
-              <strong>{node}</strong>
-            </div>
-            {index < nodes.length - 1 ? <ChevronRight className="flow-arrow" aria-hidden="true" /> : null}
-          </div>
-        ))}
-      </div>
-      <div className="preview-footer">
-        <span>AI workflow plan</span>
-        <span>5-10 business days</span>
-      </div>
-    </div>
-  );
-}
-
-function ContactForm({ initialMessage }: { initialMessage: string }) {
+function ContactForm() {
   const [state, setState] = useState<ContactState>("idle");
-  const [message, setMessage] = useState(initialMessage);
-
-  useEffect(() => {
-    setMessage(initialMessage);
-  }, [initialMessage]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -349,7 +317,6 @@ function ContactForm({ initialMessage }: { initialMessage: string }) {
 
       setState("success");
       event.currentTarget.reset();
-      setMessage("");
     } catch {
       setState("error");
     }
@@ -397,8 +364,6 @@ function ContactForm({ initialMessage }: { initialMessage: string }) {
           name="problemDescription"
           required
           minLength={20}
-          value={message}
-          onChange={(event) => setMessage(event.target.value)}
           placeholder="Describe the workflow, tools, handoffs, bottlenecks, and desired output."
         />
       </label>
@@ -418,14 +383,6 @@ function ContactForm({ initialMessage }: { initialMessage: string }) {
 
 export default function FlowOpsRebrand() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [prompt, setPrompt] = useState<string>(builderExamples[0]);
-  const [prefill, setPrefill] = useState("");
-
-  const requestBuild = useCallback(() => {
-    const text = `Automation request:\n${prompt}\n\nPlease map this into a practical AI automation system.`;
-    setPrefill(text);
-    document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [prompt]);
 
   return (
     <main className="site-shell">
@@ -444,7 +401,7 @@ export default function FlowOpsRebrand() {
           ))}
         </nav>
         <Link className="nav-cta" href="#contact">
-          Build my system
+          Request free audit
         </Link>
         <button className="menu-button" type="button" onClick={() => setMenuOpen(true)} aria-label="Open menu">
           <Menu aria-hidden="true" />
@@ -468,43 +425,24 @@ export default function FlowOpsRebrand() {
         <div className="hero-copy">
           <p className="eyebrow">
             <span />
-            AI Automation Systems Agency
+            AI Automation Agency
           </p>
-          <h1>Business automation that feels like a command center.</h1>
+          <h1>Stop losing leads. Stop burning hours on manual work.</h1>
           <p className="hero-lead">
-            FlowOps designs and builds AI-powered systems for sales, operations, reporting,
-            and internal teams. Describe the workflow. We turn it into architecture,
-            automation, and measurable execution.
+            FlowOps builds AI-powered automation systems for service businesses, agencies, and
+            e-commerce teams. We start with a free audit, deliver a working system in 5-7 days,
+            and stay as your long-term automation partner.
           </p>
           <div className="hero-actions">
-            <button className="primary-button" type="button" onClick={requestBuild}>
-              Get this system built
+            <Link className="primary-button" href="#contact">
+              Request free audit
               <ArrowRight aria-hidden="true" />
-            </button>
+            </Link>
             <Link className="secondary-button" href="#cases">
               <Play aria-hidden="true" />
               View real systems
             </Link>
           </div>
-        </div>
-
-        <div className="command-panel">
-          <div className="panel-topline">
-            <span>FlowOps engine</span>
-            <strong>Live</strong>
-          </div>
-          <label className="builder-input">
-            <span>Describe a workflow</span>
-            <textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} />
-          </label>
-          <div className="example-row">
-            {builderExamples.map((example) => (
-              <button key={example} type="button" onClick={() => setPrompt(example)}>
-                {example}
-              </button>
-            ))}
-          </div>
-          <SystemPreview prompt={prompt} />
         </div>
       </section>
 
@@ -532,24 +470,48 @@ export default function FlowOpsRebrand() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section niches-section">
         <div className="section-head">
           <p className="eyebrow">
             <span />
-            Build layers
+            Who we help
           </p>
-          <h2>Three offers. One architecture mindset.</h2>
+          <h2>Built for teams where speed and follow-up matter.</h2>
         </div>
-        <div className="service-grid">
-          {services.map((service) => {
-            const Icon = service.icon;
+        <div className="niche-grid">
+          {niches.map((niche) => {
+            const Icon = niche.icon;
             return (
-              <article className="service-card" key={service.title}>
+              <div className="niche-chip" key={niche.label}>
                 <Icon aria-hidden="true" />
-                <h3>{service.title}</h3>
-                <p>{service.summary}</p>
+                {niche.label}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="section" id="offers">
+        <div className="section-head">
+          <p className="eyebrow">
+            <span />
+            Offers
+          </p>
+          <h2>Four offers. One operating model.</h2>
+        </div>
+        <div className="service-grid offers-grid">
+          {offers.map((offer) => {
+            const Icon = offer.icon;
+            return (
+              <article className="service-card" key={offer.title}>
+                <Icon aria-hidden="true" />
+                <div className="offer-header">
+                  <h3>{offer.title}</h3>
+                  <span className="offer-price">{offer.price}</span>
+                </div>
+                <p>{offer.summary}</p>
                 <ul>
-                  {service.points.map((point) => (
+                  {offer.points.map((point) => (
                     <li key={point}>
                       <Check aria-hidden="true" />
                       {point}
@@ -651,7 +613,7 @@ export default function FlowOpsRebrand() {
           <div className="contact-chips">
             <span>
               <Zap aria-hidden="true" />
-              Response within one business day
+              We&apos;ll reach out within 1 hour
             </span>
             <span>
               <Mail aria-hidden="true" />
@@ -663,7 +625,7 @@ export default function FlowOpsRebrand() {
             </span>
           </div>
         </div>
-        <ContactForm initialMessage={prefill} />
+        <ContactForm />
       </section>
 
       <footer className="site-footer">
