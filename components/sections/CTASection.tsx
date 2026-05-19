@@ -3,61 +3,69 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "@/lib/gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
+import { BarChart3, FileText, Handshake, Inbox, LayoutGrid, Lock, MousePointer2, PhoneCall, Settings2, Zap } from "lucide-react";
+import styles from "./CTASection.module.css";
 
 const SERVICE_OPTIONS = [
-  { id: "sales", label: "Sales Automation", icon: "→" },
-  { id: "ops", label: "Ops Automation", icon: "⚙" },
-  { id: "ai", label: "AI Integration", icon: "✦" },
-  { id: "full", label: "Full System Build", icon: "◆" },
+  { id: "lead", label: "LeadOS", icon: <MousePointer2 size={18} /> },
+  { id: "sales", label: "SalesOS", icon: <LayoutGrid size={18} /> },
+  { id: "voice", label: "VoiceOS", icon: <PhoneCall size={18} /> },
+  { id: "inbox", label: "InboxOS", icon: <Inbox size={18} /> },
+  { id: "ops", label: "OpsOS", icon: <Settings2 size={18} /> },
+  { id: "report", label: "ReportOS", icon: <BarChart3 size={18} /> },
 ];
 
 const TRUST_CHIPS = [
-  { icon: "⚡", label: "Response within 1 business day" },
-  { icon: "🔒", label: "No commitment required" },
-  { icon: "📋", label: "You get a real plan, not a proposal" },
-  { icon: "🤝", label: "Free audit call included" },
+  { icon: <Zap size={16} />, label: "Secure lead capture" },
+  { icon: <Lock size={16} />, label: "No commitment required" },
+  { icon: <FileText size={16} />, label: "Workflow map + roadmap" },
+  { icon: <Handshake size={16} />, label: "Clear system recommendation" },
 ];
 
-const REVENUE_OPTIONS = [
-  "< $100k / month",
-  "$100k – $500k / month",
-  "$500k – $2M / month",
-  "$2M+ / month",
+const INDUSTRY_OPTIONS = [
+  "B2B services",
+  "E-commerce",
+  "SaaS",
+  "Logistics / operations",
+  "Healthcare operations",
+  "Real estate",
+  "Other",
 ];
 
-const STEP_LABELS = ["What you need", "Tell us about it", "Your contact"];
+const TEAM_SIZE_OPTIONS = ["1–10", "11–25", "26–75", "76–200", "200+"];
+
+const STEP_LABELS = ["SYSTEM", "OPERATION", "REQUEST"];
 
 export default function CTASection() {
   const sectionRef = useRef<HTMLElement>(null);
   const [step, setStep] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [form, setForm] = useState({
+    email: "",
+    website: "",
+    industry: INDUSTRY_OPTIONS[0],
+    pain: "",
+    teamSize: TEAM_SIZE_OPTIONS[1],
     bottleneck: "",
     tools: "",
-    name: "",
     company: "",
-    email: "",
-    whatsapp: "",
-    revenueRange: REVENUE_OPTIONS[0],
+    companyNameConfirm: "",
   });
-  const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.fromTo(
-        ".cta-heading",
-        { opacity: 0, y: 44 },
+        `.${styles.copy}`,
+        { opacity: 0, x: -40 },
         {
           opacity: 1,
-          y: 0,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: { trigger: ".cta-heading", start: "top 82%", once: true },
+          x: 0,
+          duration: 1.2,
+          ease: "power4.out",
+          scrollTrigger: { trigger: `.${styles.copy}`, start: "top 85%", once: true },
         }
       );
     }, sectionRef);
@@ -67,27 +75,37 @@ export default function CTASection() {
   const handleSubmit = async () => {
     setSubmitting(true);
     setError("");
+
     try {
-      const payload = {
-        name: form.name,
-        company: form.company,
-        businessType: selected || "Full system audit",
-        revenueRange: form.revenueRange,
-        problemDescription: `Bottleneck: ${form.bottleneck}\nTools: ${form.tools}`,
-        email: form.email,
-        whatsapp: form.whatsapp || "+0000000000",
-      };
-      const res = await fetch("/api/contact", {
+      const response = await fetch("/api/audit-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          workEmail: form.email,
+          companyWebsite: form.website,
+          businessType: form.industry,
+          mainOperationalPain: form.pain,
+          teamSize: form.teamSize,
+          currentTools: form.tools,
+          biggestBottleneck: form.bottleneck,
+          selectedSystem: selected,
+          company: form.company,
+          companyNameConfirm: form.companyNameConfirm,
+          pageUrl: window.location.href,
+          source: "flowops_website",
+        }),
       });
-      const data = await res.json() as { success: boolean; message: string };
-      if (data.success) {
-        setSuccess(true);
-      } else {
-        setError(data.message || "Something went wrong. Please try again.");
+      const data = (await response.json()) as {
+        success: boolean;
+        message?: string;
+      };
+
+      if (!response.ok || !data.success) {
+        setError(data.message || "Unable to submit the audit request right now.");
+        return;
       }
+
+      setSuccess(true);
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -95,256 +113,93 @@ export default function CTASection() {
     }
   };
 
-  const inputStyle = {
-    width: "100%",
-    padding: "12px 14px",
-    background: "#141520",
-    border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: "8px",
-    color: "white",
-    fontSize: "14px",
-    outline: "none",
-    boxSizing: "border-box" as const,
-    transition: "border-color 0.2s, box-shadow 0.2s",
-  };
-
   return (
-    <section
-      id="contact"
-      ref={sectionRef}
-      style={{
-        background: "linear-gradient(180deg, #000000, #050510)",
-        padding: "120px 0",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Blue glow background */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "600px",
-          height: "300px",
-          background: "radial-gradient(ellipse at center, rgba(59,130,246,0.12) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }}
-      />
+    <section id="contact" ref={sectionRef} className={styles.section}>
+      <div className={styles.bgGlow} />
+      
+      {/* Background Orbital Lines */}
+      <div className={styles.orbitalLine} style={{ width: '1200px', height: '1200px', top: '-200px', right: '-400px' }} />
+      <div className={styles.orbitalLine} style={{ width: '800px', height: '800px', bottom: '-100px', left: '-200px' }} />
 
-      <div
-        style={{
-          maxWidth: "var(--container-width)",
-          margin: "0 auto",
-          padding: "0 24px",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "80px",
-            alignItems: "start",
-          }}
-          className="cta-grid"
-        >
-          {/* Left: Copy */}
-          <div className="cta-heading">
-            <span
-              style={{
-                fontSize: "11px",
-                fontWeight: 700,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "var(--color-text-faint)",
-                display: "block",
-                marginBottom: "16px",
-              }}
-            >
-              Start Here
-            </span>
-            <h2
-              style={{
-                fontSize: "clamp(28px, 4vw, 48px)",
-                fontWeight: 800,
-                color: "#f0f2ff",
-                lineHeight: 1.1,
-                letterSpacing: "-0.025em",
-                marginBottom: "20px",
-              }}
-            >
-              Ready to cut 68% of manual work?
-            </h2>
-            <p style={{ color: "var(--color-text-muted)", lineHeight: 1.7, fontSize: "15px", marginBottom: "36px" }}>
-              Request a free automation audit. Include your tools, the process you want to fix, and where you&apos;re losing the most time. We&apos;ll review it personally and come back with a specific, actionable plan — not a sales pitch.
+      <div className={styles.container}>
+        <div className={styles.grid}>
+          {/* Left Side: Copy */}
+          <div className={styles.copy}>
+            <span className={styles.eyebrow}>Start With The Audit</span>
+            <h2 className={styles.title}>Request your free AI Operations Audit.</h2>
+            <p className={styles.description}>
+              Send a structured snapshot of the workflow that is slowing the company down. FlowOps will store the request securely, review the operation, and route the next steps internally.
             </p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            
+            <div className={styles.trustChips}>
               {TRUST_CHIPS.map((chip, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    padding: "12px 16px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: "10px",
-                  }}
-                >
-                  <span style={{ fontSize: "18px" }}>{chip.icon}</span>
-                  <span style={{ fontSize: "14px", color: "var(--color-text-muted)" }}>{chip.label}</span>
+                <div key={i} className={styles.trustChip}>
+                  <span>{chip.icon}</span>
+                  {chip.label}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Right: Form */}
-          <div
-            style={{
-              background: "#0f1017",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: "20px",
-              overflow: "hidden",
-            }}
-          >
+          {/* Right Side: Form Panel */}
+          <div className={styles.panel}>
             {success ? (
-              <div style={{ padding: "48px 32px", textAlign: "center" }}>
-                <div
-                  style={{
-                    width: "64px",
-                    height: "64px",
-                    borderRadius: "50%",
-                    background: "rgba(59,130,246,0.15)",
-                    border: "2px solid #3b82f6",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    margin: "0 auto 24px",
-                    fontSize: "28px",
-                    color: "#3b82f6",
-                    animation: "checkPop 0.4s ease-out",
-                  }}
-                >
-                  ✓
-                </div>
-                <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#f0f2ff", marginBottom: "12px" }}>
-                  Request received
-                </h3>
-                <p style={{ color: "var(--color-text-muted)", fontSize: "14px", lineHeight: 1.7 }}>
-                  Got it. A real human (not a bot) will review your request and reach out within one business day with next steps. No pitch decks. Just a conversation.
+              <div style={{ padding: "60px 40px", textAlign: "center" }}>
+                <div style={{ 
+                  width: 80, height: 80, borderRadius: '50%', background: 'rgba(59,130,246,0.1)', 
+                  border: '2px solid var(--color-primary)', display: 'flex', alignItems: 'center', 
+                  justifyContent: 'center', margin: '0 auto 24px', fontSize: '32px', color: 'var(--color-primary)',
+                  boxShadow: 'var(--shadow-blue)'
+                }}>✓</div>
+                <h3 style={{ fontSize: '24px', fontWeight: 800, color: '#fff', marginBottom: '16px' }}>Audit Request Received</h3>
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '15px', lineHeight: 1.6 }}>
+                  We&apos;ll review your operation and contact you with next steps.
                 </p>
-                <style>{`
-                  @keyframes checkPop {
-                    0% { transform: scale(0); opacity: 0; }
-                    70% { transform: scale(1.15); }
-                    100% { transform: scale(1); opacity: 1; }
-                  }
-                `}</style>
               </div>
             ) : (
               <>
-                {/* Progress dots */}
-                <div
-                  style={{
-                    padding: "20px 24px",
-                    borderBottom: "1px solid rgba(255,255,255,0.07)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
-                  }}
-                >
-                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                    {[0, 1, 2].map((i) => (
-                      <div
-                        key={i}
-                        style={{
-                          width: i === step ? "24px" : "8px",
-                          height: "8px",
-                          borderRadius: "4px",
-                          background: i === step ? "#3b82f6" : i < step ? "#3b82f6" : "rgba(255,255,255,0.15)",
-                          transition: "all 0.3s",
-                        }}
-                      />
+                <div className={styles.panelHeader}>
+                  <div className={styles.panelTitle}>CONFIGURATION // {STEP_LABELS[step]}</div>
+                  <div className={styles.progressContainer}>
+                    {[0, 1, 2].map(i => (
+                      <div key={i} className={`${styles.progressDot} ${i <= step ? styles.progressDotActive : ""}`} />
                     ))}
-                    <span style={{ fontSize: "12px", color: "var(--color-text-faint)", marginLeft: "8px" }}>
-                      {STEP_LABELS[step]}
-                    </span>
                   </div>
                 </div>
 
-                <div style={{ padding: "28px 24px" }}>
+                <div className={styles.panelBody}>
                   <AnimatePresence mode="wait">
                     {step === 0 && (
                       <motion.div
                         key="step0"
-                        initial={{ opacity: 0, x: 40 }}
+                        initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -40 }}
-                        transition={{ duration: 0.25 }}
+                        exit={{ opacity: 0, x: -20 }}
                       >
-                        <p style={{ fontSize: "14px", color: "var(--color-text-muted)", marginBottom: "20px" }}>
-                          What type of system do you need?
-                        </p>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                        <div className={styles.stepLabel}>First system to explore</div>
+                        <div className={styles.optionsGrid}>
                           {SERVICE_OPTIONS.map((opt) => (
                             <button
                               key={opt.id}
+                              className={`${styles.optionCard} ${selected === opt.id ? styles.optionCardActive : ""}`}
                               onClick={() => setSelected(opt.id)}
-                              style={{
-                                padding: "16px 12px",
-                                background: selected === opt.id ? "rgba(59,130,246,0.08)" : "rgba(255,255,255,0.03)",
-                                border: `1px solid ${selected === opt.id ? "#3b82f6" : "rgba(255,255,255,0.1)"}`,
-                                borderRadius: "10px",
-                                cursor: "none",
-                                textAlign: "left",
-                                transition: "all 0.2s",
-                                position: "relative",
-                              }}
+                              data-cursor="pointer"
                             >
-                              <div style={{ fontSize: "20px", marginBottom: "8px" }}>{opt.icon}</div>
-                              <div style={{ fontSize: "13px", fontWeight: 600, color: selected === opt.id ? "#60a5fa" : "var(--color-text-muted)" }}>
+                              <span className={styles.optionIcon}>{opt.icon}</span>
+                              <span className={`${styles.optionLabel} ${selected === opt.id ? styles.optionLabelActive : ""}`}>
                                 {opt.label}
-                              </div>
-                              {selected === opt.id && (
-                                <span
-                                  style={{
-                                    position: "absolute",
-                                    top: "10px",
-                                    right: "10px",
-                                    color: "#3b82f6",
-                                    fontSize: "14px",
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  ✓
-                                </span>
-                              )}
+                              </span>
                             </button>
                           ))}
                         </div>
                         <button
-                          onClick={() => setStep(1)}
+                          className={styles.btnPrimary}
+                          style={{ width: '100%', marginTop: '32px' }}
                           disabled={!selected}
-                          style={{
-                            marginTop: "20px",
-                            width: "100%",
-                            padding: "13px",
-                            background: selected ? "#3b82f6" : "rgba(59,130,246,0.3)",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "10px",
-                            fontSize: "14px",
-                            fontWeight: 600,
-                            cursor: selected ? "none" : "not-allowed",
-                            transition: "background 0.2s",
-                          }}
+                          onClick={() => setStep(1)}
+                          data-cursor="pointer"
                         >
-                          Next →
+                          Continue to Snapshot
                         </button>
                       </motion.div>
                     )}
@@ -352,84 +207,49 @@ export default function CTASection() {
                     {step === 1 && (
                       <motion.div
                         key="step1"
-                        initial={{ opacity: 0, x: 40 }}
+                        initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -40 }}
-                        transition={{ duration: 0.25 }}
+                        exit={{ opacity: 0, x: -20 }}
                       >
-                        <div style={{ marginBottom: "16px" }}>
-                          <label style={{ fontSize: "13px", color: "var(--color-text-muted)", display: "block", marginBottom: "8px" }}>
-                            Describe your biggest bottleneck
-                          </label>
+                        <div className={styles.stepLabel}>Operational Snapshot</div>
+                        <div className={styles.field}>
+                          <label className={styles.label}>Main operational pain</label>
                           <textarea
+                            className={styles.input}
+                            rows={3}
+                            placeholder="e.g. missed leads, slow follow-up, disconnected reporting..."
+                            value={form.pain}
+                            onChange={(e) => setForm({ ...form, pain: e.target.value })}
+                          />
+                        </div>
+                        <div className={styles.field}>
+                          <label className={styles.label}>Biggest bottleneck</label>
+                          <textarea
+                            className={styles.input}
+                            rows={3}
+                            placeholder="Where does the workflow slow down or break?"
                             value={form.bottleneck}
                             onChange={(e) => setForm({ ...form, bottleneck: e.target.value })}
-                            placeholder="e.g. Manual lead entry, report building, order processing..."
-                            rows={3}
-                            style={{ ...inputStyle, resize: "vertical" }}
-                            onFocus={(e) => {
-                              e.target.style.borderColor = "#3b82f6";
-                              e.target.style.boxShadow = "0 0 0 3px rgba(59,130,246,0.15)";
-                            }}
-                            onBlur={(e) => {
-                              e.target.style.borderColor = "rgba(255,255,255,0.1)";
-                              e.target.style.boxShadow = "none";
-                            }}
                           />
                         </div>
-                        <div style={{ marginBottom: "20px" }}>
-                          <label style={{ fontSize: "13px", color: "var(--color-text-muted)", display: "block", marginBottom: "8px" }}>
-                            What tools do you currently use?
-                          </label>
+                        <div className={styles.field}>
+                          <label className={styles.label}>Existing tools</label>
                           <input
-                            type="text"
+                            className={styles.input}
+                            placeholder="CRM, inbox, phone system, spreadsheets, dashboards..."
                             value={form.tools}
                             onChange={(e) => setForm({ ...form, tools: e.target.value })}
-                            placeholder="CRM, WhatsApp, Shopify, etc."
-                            style={inputStyle}
-                            onFocus={(e) => {
-                              e.target.style.borderColor = "#3b82f6";
-                              e.target.style.boxShadow = "0 0 0 3px rgba(59,130,246,0.15)";
-                            }}
-                            onBlur={(e) => {
-                              e.target.style.borderColor = "rgba(255,255,255,0.1)";
-                              e.target.style.boxShadow = "none";
-                            }}
                           />
                         </div>
-                        <div style={{ display: "flex", gap: "10px" }}>
-                          <button
-                            onClick={() => setStep(0)}
-                            style={{
-                              flex: 1,
-                              padding: "13px",
-                              background: "none",
-                              border: "1px solid rgba(255,255,255,0.14)",
-                              color: "var(--color-text-muted)",
-                              borderRadius: "10px",
-                              fontSize: "14px",
-                              fontWeight: 600,
-                              cursor: "none",
-                            }}
-                          >
-                            ← Back
-                          </button>
-                          <button
+                        <div className={styles.buttonGroup}>
+                          <button className={styles.btnSecondary} onClick={() => setStep(0)} data-cursor="pointer">Back</button>
+                          <button 
+                            className={styles.btnPrimary} 
+                            disabled={!form.pain.trim() || !form.bottleneck.trim()}
                             onClick={() => setStep(2)}
-                            disabled={!form.bottleneck.trim()}
-                            style={{
-                              flex: 2,
-                              padding: "13px",
-                              background: form.bottleneck.trim() ? "#3b82f6" : "rgba(59,130,246,0.3)",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "10px",
-                              fontSize: "14px",
-                              fontWeight: 600,
-                              cursor: form.bottleneck.trim() ? "none" : "not-allowed",
-                            }}
+                            data-cursor="pointer"
                           >
-                            Next →
+                            Proceed to Contact
                           </button>
                         </div>
                       </motion.div>
@@ -438,101 +258,72 @@ export default function CTASection() {
                     {step === 2 && (
                       <motion.div
                         key="step2"
-                        initial={{ opacity: 0, x: 40 }}
+                        initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -40 }}
-                        transition={{ duration: 0.25 }}
+                        exit={{ opacity: 0, x: -20 }}
                       >
-                        <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "16px" }}>
-                          {[
-                            { key: "name", label: "First name *", placeholder: "Alex", type: "text" },
-                            { key: "company", label: "Company *", placeholder: "Your company name", type: "text" },
-                            { key: "email", label: "Email *", placeholder: "alex@company.com", type: "email" },
-                            { key: "whatsapp", label: "WhatsApp (optional, but faster)", placeholder: "+1 234 567 8900", type: "tel" },
-                          ].map((field) => (
-                            <div key={field.key}>
-                              <label style={{ fontSize: "12px", color: "var(--color-text-faint)", display: "block", marginBottom: "6px" }}>
-                                {field.label}
-                              </label>
-                              <input
-                                type={field.type}
-                                value={form[field.key as keyof typeof form]}
-                                onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
-                                placeholder={field.placeholder}
-                                style={inputStyle}
-                                onFocus={(e) => {
-                                  e.target.style.borderColor = "#3b82f6";
-                                  e.target.style.boxShadow = "0 0 0 3px rgba(59,130,246,0.15)";
-                                }}
-                                onBlur={(e) => {
-                                  e.target.style.borderColor = "rgba(255,255,255,0.1)";
-                                  e.target.style.boxShadow = "none";
-                                }}
-                              />
-                            </div>
-                          ))}
-
-                          <div>
-                            <label style={{ fontSize: "12px", color: "var(--color-text-faint)", display: "block", marginBottom: "6px" }}>
-                              Monthly revenue range
-                            </label>
-                            <select
-                              value={form.revenueRange}
-                              onChange={(e) => setForm({ ...form, revenueRange: e.target.value })}
-                              style={{
-                                ...inputStyle,
-                                background: "#141520",
-                              }}
-                            >
-                              {REVENUE_OPTIONS.map((opt) => (
-                                <option key={opt} value={opt} style={{ background: "#141520" }}>
-                                  {opt}
-                                </option>
-                              ))}
-                            </select>
+                        <div className={styles.stepLabel}>Audit request details</div>
+                        <div className={styles.honeypot} aria-hidden="true">
+                          <label className={styles.label}>Company name confirmation</label>
+                          <input
+                            className={styles.input}
+                            tabIndex={-1}
+                            autoComplete="off"
+                            value={form.companyNameConfirm}
+                            onChange={(e) => setForm({ ...form, companyNameConfirm: e.target.value })}
+                          />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                          <div className={styles.field} style={{ marginBottom: 0 }}>
+                            <label className={styles.label}>Work email</label>
+                            <input className={styles.input} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                          </div>
+                          <div className={styles.field} style={{ marginBottom: 0 }}>
+                            <label className={styles.label}>Company</label>
+                            <input className={styles.input} value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
                           </div>
                         </div>
-
-                        {error && (
-                          <p style={{ fontSize: "13px", color: "#ef4444", marginBottom: "12px" }}>{error}</p>
-                        )}
-
-                        <div style={{ display: "flex", gap: "10px" }}>
-                          <button
-                            onClick={() => setStep(1)}
-                            style={{
-                              flex: 1,
-                              padding: "13px",
-                              background: "none",
-                              border: "1px solid rgba(255,255,255,0.14)",
-                              color: "var(--color-text-muted)",
-                              borderRadius: "10px",
-                              fontSize: "14px",
-                              fontWeight: 600,
-                              cursor: "none",
-                            }}
+                        <div className={styles.field}>
+                          <label className={styles.label}>Company website</label>
+                          <input className={styles.input} placeholder="https://company.com" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                          <div className={styles.field} style={{ marginBottom: 0 }}>
+                            <label className={styles.label}>Business type / industry</label>
+                            <select 
+                              className={styles.input} 
+                              style={{ background: '#1a1b2e' }}
+                              value={form.industry}
+                              onChange={(e) => setForm({ ...form, industry: e.target.value })}
+                            >
+                              {INDUSTRY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                            </select>
+                          </div>
+                          <div className={styles.field} style={{ marginBottom: 0 }}>
+                            <label className={styles.label}>Team size</label>
+                          <select 
+                            className={styles.input} 
+                            style={{ background: '#1a1b2e' }}
+                              value={form.teamSize}
+                              onChange={(e) => setForm({ ...form, teamSize: e.target.value })}
                           >
-                            ← Back
-                          </button>
-                          <button
+                              {TEAM_SIZE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                          </select>
+                          </div>
+                        </div>
+                        {error && <p className={styles.errorText}>{error}</p>}
+                        <p className={styles.formNote}>
+                          Stored first, notifications second. If email or n8n forwarding fails after storage, the request is still captured.
+                        </p>
+                        <div className={styles.buttonGroup}>
+                          <button className={styles.btnSecondary} onClick={() => setStep(1)} data-cursor="pointer">Back</button>
+                          <button 
+                            className={styles.btnPrimary}
+                            disabled={submitting || !form.email || !form.pain.trim() || !form.bottleneck.trim()}
                             onClick={handleSubmit}
-                            disabled={submitting || !form.name || !form.company || !form.email}
-                            style={{
-                              flex: 2,
-                              padding: "13px",
-                              background:
-                                !submitting && form.name && form.company && form.email
-                                  ? "#3b82f6"
-                                  : "rgba(59,130,246,0.3)",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "10px",
-                              fontSize: "14px",
-                              fontWeight: 600,
-                              cursor: !submitting && form.name && form.company && form.email ? "none" : "not-allowed",
-                            }}
+                            data-cursor="pointer"
                           >
-                            {submitting ? "Sending..." : "Request free audit →"}
+                            {submitting ? "Submitting..." : "Request Free AI Operations Audit"}
                           </button>
                         </div>
                       </motion.div>
@@ -544,12 +335,6 @@ export default function CTASection() {
           </div>
         </div>
       </div>
-
-      <style>{`
-        @media (max-width: 768px) {
-          .cta-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
-        }
-      `}</style>
     </section>
   );
 }

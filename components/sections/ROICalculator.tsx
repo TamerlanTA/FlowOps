@@ -2,28 +2,70 @@
 
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import styles from "./ROICalculator.module.css";
 
-gsap.registerPlugin(ScrollTrigger);
+const AUDIT_DELIVERABLES = [
+  "Workflow map",
+  "Automation opportunities",
+  "ROI estimate",
+  "System recommendation",
+  "Implementation roadmap",
+] as const;
 
-function useAnimatedNumber(target: number, duration = 600) {
+const AUDIT_STEPS = [
+  {
+    label: "Step 1",
+    title: "Map current workflows",
+    text: "Document how work actually moves across people, tools, approvals, and exceptions.",
+  },
+  {
+    label: "Step 2",
+    title: "Identify manual bottlenecks",
+    text: "Find the places where follow-up, CRM updates, reports, routing, and handoffs depend on manual effort.",
+  },
+  {
+    label: "Step 3",
+    title: "Estimate automation ROI",
+    text: "Convert repeated manual work into an operational estimate, then prioritize by effort and impact.",
+  },
+  {
+    label: "Step 4",
+    title: "Recommend FlowOps systems",
+    text: "Match the operation to LeadOS, SalesOS, VoiceOS, InboxOS, OpsOS, ReportOS, or a staged combination.",
+  },
+  {
+    label: "Step 5",
+    title: "Deliver implementation roadmap",
+    text: "Define the first system, required integrations, rollout order, owner model, and maintenance path.",
+  },
+] as const;
+
+const DIAGNOSTIC_SIGNALS = [
+  "No tool replacement required",
+  "Built around your existing stack",
+  "Start with diagnosis, not guesswork",
+  "Designed for recurring operational improvement",
+] as const;
+
+function useAnimatedNumber(target: number, duration = 800) {
   const [display, setDisplay] = useState(target);
+  const displayRef = useRef(target);
   const rafRef = useRef<number>(0);
   const startRef = useRef<number | null>(null);
-  const fromRef = useRef<number>(0);
 
   useEffect(() => {
-    const from = fromRef.current;
+    const from = displayRef.current;
     startRef.current = null;
     cancelAnimationFrame(rafRef.current);
 
     const step = (ts: number) => {
       if (!startRef.current) startRef.current = ts;
       const progress = Math.min((ts - startRef.current) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.round(from + (target - from) * eased));
+      const eased = 1 - Math.pow(1 - progress, 4); // Quart easing
+      const next = Math.round(from + (target - from) * eased);
+      displayRef.current = next;
+      setDisplay(next);
       if (progress < 1) rafRef.current = requestAnimationFrame(step);
-      else fromRef.current = target;
     };
     rafRef.current = requestAnimationFrame(step);
     return () => cancelAnimationFrame(rafRef.current);
@@ -34,232 +76,189 @@ function useAnimatedNumber(target: number, duration = 600) {
 
 export default function ROICalculator() {
   const sectionRef = useRef<HTMLElement>(null);
+  const cockpitRef = useRef<HTMLDivElement>(null);
+  
   const [team, setTeam] = useState(5);
   const [hours, setHours] = useState(15);
   const [salary, setSalary] = useState(3000);
 
   const monthly_loss = Math.round(team * hours * 4 * (salary / 160) * 0.35);
-  const annual_roi = monthly_loss > 0 ? Math.round((monthly_loss * 12 * 3) / 5000 * 10) / 10 : 0;
-  const payback_weeks = monthly_loss > 0 ? Math.round(5000 / (monthly_loss / 4)) : 0;
+  const audit_priority = Math.min(Math.round((monthly_loss / 20000) * 100), 100);
+  const recommended_systems = monthly_loss > 12000 ? 3 : monthly_loss > 6000 ? 2 : 1;
+  const hours_recovered = team * hours * 4;
 
   const displayLoss = useAnimatedNumber(monthly_loss);
-  const displayROI = useAnimatedNumber(Math.round(annual_roi * 10));
-  const displayWeeks = useAnimatedNumber(payback_weeks);
+  const displayPriority = useAnimatedNumber(audit_priority);
+  const displaySystems = useAnimatedNumber(recommended_systems);
+  const displayHours = useAnimatedNumber(hours_recovered);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.fromTo(
-        ".roi-card",
-        { opacity: 0, y: 44 },
+        `.${styles.cockpit}`,
+        { opacity: 0, y: 60, scale: 0.95 },
         {
           opacity: 1,
           y: 0,
-          duration: 0.85,
-          ease: "power3.out",
-          scrollTrigger: { trigger: ".roi-card", start: "top 82%", once: true },
+          scale: 1,
+          duration: 1.2,
+          ease: "power4.out",
+          scrollTrigger: { trigger: `.${styles.cockpit}`, start: "top 85%", once: true },
         }
       );
     }, sectionRef);
     return () => ctx.revert();
   }, []);
 
+  const recoveryProgress = audit_priority;
+
   return (
-    <section id="roi" ref={sectionRef} style={{ background: "#0a0a0f", padding: "120px 0" }}>
-      <div style={{ maxWidth: "var(--container-width)", margin: "0 auto", padding: "0 24px" }}>
-        <div style={{ textAlign: "center", marginBottom: "48px" }}>
-          <span
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "var(--color-text-faint)",
-              display: "block",
-              marginBottom: "16px",
-            }}
-          >
-            Calculate Your Loss
-          </span>
-          <h2
-            style={{
-              fontSize: "clamp(28px, 4vw, 48px)",
-              fontWeight: 800,
-              color: "#f0f2ff",
-              lineHeight: 1.1,
-              letterSpacing: "-0.025em",
-            }}
-          >
-            What is manual work actually costing you?
-          </h2>
+    <section id="audit" ref={sectionRef} className={styles.section}>
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <span className={styles.eyebrow}>AI Operations Audit</span>
+          <h2 className={styles.title}>Start with the audit before you buy another tool.</h2>
+          <p className={styles.subtitle}>
+            A frontend preview of the audit entry point. The request starts a human review;
+            it does not generate an instant report on this page.
+          </p>
         </div>
 
-        <div
-          className="roi-card"
-          style={{
-            maxWidth: "640px",
-            margin: "0 auto",
-            background: "#0f1017",
-            border: "1px solid rgba(59,130,246,0.2)",
-            borderRadius: "20px",
-            boxShadow: "var(--shadow-blue)",
-            overflow: "hidden",
-            opacity: 0,
-          }}
-        >
-          {/* Inputs */}
-          <div style={{ padding: "32px" }}>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "14px", marginBottom: "28px", lineHeight: 1.6 }}>
-              Fill in your numbers. We&apos;ll calculate the real cost — and what automation changes.
-            </p>
+        <div className={styles.auditPipeline}>
+          {AUDIT_STEPS.map((step) => (
+            <div key={step.title} className={styles.pipelineCard}>
+              <span>{step.label}</span>
+              <h3>{step.title}</h3>
+              <p>{step.text}</p>
+            </div>
+          ))}
+        </div>
 
-            {[
-              { label: "Team members doing manual work", value: team, set: setTeam, min: 1, max: 100, step: 1, suffix: "people" },
-              { label: "Hours per week on manual tasks", value: hours, set: setHours, min: 1, max: 80, step: 1, suffix: "hrs/wk" },
-              { label: "Average salary per person ($/month)", value: salary, set: setSalary, min: 500, max: 20000, step: 500, suffix: "$/mo" },
-            ].map((field) => (
-              <div key={field.label} style={{ marginBottom: "20px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                  <label
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 500,
-                      color: "var(--color-text-muted)",
-                    }}
-                  >
-                    {field.label}
-                  </label>
-                  <span
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 700,
-                      color: "#f0f2ff",
-                    }}
-                  >
-                    {field.value.toLocaleString()} {field.suffix}
+        <div className={styles.cockpit} ref={cockpitRef}>
+          {/* Controls */}
+          <div className={styles.controls}>
+              {[
+              { label: "People in the workflow", value: team, set: setTeam, min: 1, max: 100, step: 1, suffix: "px" },
+              { label: "Manual hours / week", value: hours, set: setHours, min: 1, max: 80, step: 1, suffix: "hrs" },
+              { label: "Avg monthly salary", value: salary, set: setSalary, min: 500, max: 20000, step: 500, suffix: "$" },
+            ].map((f) => (
+              <div key={f.label} className={styles.inputGroup}>
+                <div className={styles.inputHeader}>
+                  <label className={styles.inputLabel}>{f.label}</label>
+                  <span className={styles.inputValue}>
+                    {f.suffix === "$" && "$"}
+                    {f.value.toLocaleString()}
+                    {f.suffix === "hrs" && " hrs"}
                   </span>
                 </div>
                 <input
                   type="range"
-                  min={field.min}
-                  max={field.max}
-                  step={field.step}
-                  value={field.value}
-                  onChange={(e) => field.set(Number(e.target.value))}
+                  min={f.min}
+                  max={f.max}
+                  step={f.step}
+                  value={f.value}
+                  onChange={(e) => f.set(Number(e.target.value))}
+                  className={styles.slider}
+                  data-cursor="pointer"
                   style={{
-                    width: "100%",
-                    height: "4px",
-                    appearance: "none",
-                    WebkitAppearance: "none",
-                    background: `linear-gradient(to right, #3b82f6 ${((field.value - field.min) / (field.max - field.min)) * 100}%, rgba(255,255,255,0.1) ${((field.value - field.min) / (field.max - field.min)) * 100}%)`,
-                    borderRadius: "2px",
-                    outline: "none",
-                    cursor: "none",
+                    background: `linear-gradient(to right, var(--color-primary) ${((f.value - f.min) / (f.max - f.min)) * 100}%, rgba(255,255,255,0.05) ${((f.value - f.min) / (f.max - f.min)) * 100}%)`
                   }}
                 />
               </div>
             ))}
+            
+            <div style={{ marginTop: 'auto', paddingTop: '20px' }}>
+              <div className={styles.statusChip} style={{ background: 'rgba(59,130,246,0.05)', color: 'var(--color-text-faint)', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+                Audit planner // illustrative estimate
+              </div>
+              <div className={styles.deliverablesList}>
+                {AUDIT_DELIVERABLES.map((item) => (
+                  <div key={item} className={styles.deliverableItem}>
+                    <span className={styles.deliverableDot} />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Results */}
-          <div
-            style={{
-              background: "#000",
-              borderTop: "1px solid rgba(255,255,255,0.08)",
-              padding: "28px 32px",
-            }}
-          >
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr",
-                gap: "0",
-                marginBottom: "24px",
-              }}
-            >
-              <div style={{ borderRight: "1px solid rgba(255,255,255,0.07)", padding: "0 16px 0 0" }}>
-                <div style={{ fontSize: "11px", color: "var(--color-text-faint)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  Monthly loss
-                </div>
-                <div style={{ fontSize: "28px", fontWeight: 800, color: "#f59e0b", lineHeight: 1 }}>
-                  ${displayLoss.toLocaleString()}
-                </div>
+          <div className={styles.results}>
+            <div className={styles.gridOverlay} />
+            
+            <div className={styles.statusHeader}>
+              <div className={`${styles.statusChip} ${styles.statusChipPrimary}`}>Audit deliverable: Workflow map</div>
+              <div className={`${styles.statusChip} ${styles.statusChipAccent}`}>No commitment required</div>
+            </div>
+
+            <div className={styles.mainMetric}>
+              <div className={styles.lossValue}>
+                ${displayLoss.toLocaleString()}
               </div>
-              <div style={{ borderRight: "1px solid rgba(255,255,255,0.07)", padding: "0 16px" }}>
-                <div style={{ fontSize: "11px", color: "var(--color-text-faint)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  Year-1 ROI
-                </div>
-                <div style={{ fontSize: "28px", fontWeight: 800, color: "#3b82f6", lineHeight: 1 }}>
-                  {(displayROI / 10).toFixed(1)}×
-                </div>
+              <div className={styles.lossLabel}>Monthly Productivity Loss</div>
+            </div>
+
+            <div className={styles.secondaryMetrics}>
+              <div className={styles.metricCard}>
+                <div className={styles.metricCardValue}>{displaySystems}</div>
+                <div className={styles.metricCardLabel}>Likely system recommendations</div>
               </div>
-              <div style={{ padding: "0 0 0 16px" }}>
-                <div style={{ fontSize: "11px", color: "var(--color-text-faint)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  Payback
-                </div>
-                <div style={{ fontSize: "28px", fontWeight: 800, color: "#f0f2ff", lineHeight: 1 }}>
-                  {displayWeeks} <span style={{ fontSize: "14px", fontWeight: 500, color: "var(--color-text-muted)" }}>wks</span>
-                </div>
+              <div className={styles.metricCard}>
+                <div className={styles.metricCardValue}>{displayHours}</div>
+                <div className={styles.metricCardLabel}>Manual hours mapped / Mo</div>
               </div>
             </div>
 
-            <p style={{ fontSize: "13px", color: "var(--color-text-faint)", marginBottom: "16px" }}>
-              These numbers are conservative. Want the real estimate?
-            </p>
+            <div className={styles.meterContainer}>
+              <div className={styles.inputHeader} style={{ marginBottom: '8px' }}>
+                <div className={styles.metricCardLabel}>Audit priority</div>
+                <div className={styles.metricCardLabel} style={{ color: monthly_loss > 10000 ? 'var(--color-accent)' : 'var(--color-primary)' }}>
+                  {displayPriority}%
+                </div>
+              </div>
+              <div className={styles.meterTrack}>
+                <div 
+                  className={styles.meterBar} 
+                  style={{ width: `${recoveryProgress}%` }}
+                />
+              </div>
+            </div>
+
+            <div className={styles.outputPanel}>
+              <div className={styles.outputHeader}>
+                <span>Example audit output</span>
+                <strong>Preview</strong>
+              </div>
+              <div className={styles.outputGrid}>
+                <div>
+                  <span>Likely first module</span>
+                  <strong>{monthly_loss > 12000 ? "OpsOS + ReportOS" : monthly_loss > 6000 ? "SalesOS" : "LeadOS"}</strong>
+                </div>
+                <div>
+                  <span>Operating score</span>
+                  <strong>{Math.max(24, 100 - displayPriority)} / 100</strong>
+                </div>
+              </div>
+              <div className={styles.signalList}>
+                {DIAGNOSTIC_SIGNALS.map((signal) => (
+                  <span key={signal}>{signal}</span>
+                ))}
+              </div>
+            </div>
 
             <button
+              className={styles.cta}
+              data-cursor="pointer"
               onClick={() => {
                 const el = document.getElementById("contact");
                 if (el) el.scrollIntoView({ behavior: "smooth" });
               }}
-              style={{
-                width: "100%",
-                padding: "14px",
-                background: "#3b82f6",
-                color: "white",
-                border: "none",
-                borderRadius: "10px",
-                fontSize: "15px",
-                fontWeight: 600,
-                cursor: "none",
-                transition: "background 0.2s, box-shadow 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                const btn = e.target as HTMLButtonElement;
-                btn.style.background = "#60a5fa";
-                btn.style.boxShadow = "var(--shadow-blue)";
-              }}
-              onMouseLeave={(e) => {
-                const btn = e.target as HTMLButtonElement;
-                btn.style.background = "#3b82f6";
-                btn.style.boxShadow = "none";
-              }}
             >
-              Get a precise estimate →
+              Request Free Audit →
             </button>
           </div>
         </div>
       </div>
-
-      <style>{`
-        input[type="range"]::-webkit-slider-thumb {
-          appearance: none;
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          background: #3b82f6;
-          border: 2px solid #fff;
-          box-shadow: 0 0 6px rgba(59,130,246,0.5);
-          cursor: none;
-        }
-        input[type="range"]::-moz-range-thumb {
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          background: #3b82f6;
-          border: 2px solid #fff;
-          cursor: none;
-        }
-      `}</style>
     </section>
   );
 }
