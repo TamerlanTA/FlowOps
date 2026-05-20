@@ -2,53 +2,43 @@
 
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
-import { Check } from "lucide-react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import styles from "./PainSection.module.css";
+gsap.registerPlugin(ScrollTrigger);
 
 const PAIN_ITEMS = [
-  "Leads arrive through forms, email, calls, WhatsApp, and ads, but qualification still depends on whoever notices first.",
-  "Follow-ups happen late because reminders live in inboxes, calendars, chat threads, and individual memory.",
-  "CRM fields are incomplete, deal stages are inconsistent, and managers cannot trust pipeline visibility.",
-  "Reports are assembled manually from spreadsheets and exports, so decisions lag behind the business.",
-  "Support and operations requests move across disconnected tools with no reliable ownership trail.",
-  "New work sits unassigned until someone manually routes it, checks context, and creates the next task.",
-  "The company has added more software, but the work between those tools is still held together by people.",
-  "AI is being discussed, tested, and subscribed to, but it is not yet embedded into daily operating workflows.",
+  "Leads come in through WhatsApp, forms, email, and calls — and someone manually sorts and enters them into your CRM.",
+  "Your weekly sales report takes 3 hours to build in a spreadsheet. Every. Single. Week.",
+  "When a key person is out, the whole handoff breaks down. Tribal knowledge runs your operations.",
+  "Your team talks about AI constantly. But nothing has actually been connected to daily execution yet.",
+  "Customers follow up asking for status updates because nobody sent them one automatically.",
+  "New orders, deals, or requests sit unassigned until someone notices them — sometimes too late.",
+  "You've bought tools to fix the problem, but now you have more tools and more complexity.",
+  "Your data lives in 6 different places and you can't get a clear picture of what's actually happening.",
 ];
 
-const MONTHLY_LEAKAGE_PER_ITEM = 1800;
-
-const floatingLabels = [
-  { text: "workflow_gap_scan", top: "15%", left: "5%" },
-  { text: "crm_signal_incomplete", top: "45%", right: "8%" },
-  { text: "manual_handoff_active", bottom: "12%", left: "10%" },
-  { text: "ops_layer_missing", bottom: "25%", right: "15%" },
-];
+const MONTHLY_LOSS_PER_ITEM = 2400;
 
 export default function PainSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const scannerRef = useRef<HTMLDivElement>(null);
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const [ctaVisible, setCtaVisible] = useState(false);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Entrance animations
       gsap.fromTo(
-        `.${styles.heading}`,
+        ".pain-heading",
         { opacity: 0, y: 44 },
         {
           opacity: 1,
           y: 0,
           duration: 1,
           ease: "power3.out",
-          scrollTrigger: { trigger: `.${styles.heading}`, start: "top 85%", once: true },
+          scrollTrigger: { trigger: ".pain-heading", start: "top 82%", once: true },
         }
       );
-
       gsap.fromTo(
-        `.${styles.card}`,
+        ".pain-card",
         { opacity: 0, y: 32 },
         {
           opacity: 1,
@@ -56,57 +46,10 @@ export default function PainSection() {
           duration: 0.85,
           ease: "power3.out",
           stagger: 0.08,
-          scrollTrigger: { trigger: `.${styles.cardsGrid}`, start: "top 80%", once: true },
+          scrollTrigger: { trigger: ".pain-card", start: "top 82%", once: true },
         }
       );
-
-      // Background parallax
-      gsap.to(`.${styles.background}`, {
-        y: 100,
-        ease: "none",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top bottom",
-          end: "bottom top",
-          scrub: true,
-        }
-      });
-
-      floatingLabels.forEach((_, idx) => {
-        gsap.to(`.${styles.floatingLabel}:nth-child(${idx + 5})`, {
-          y: (idx + 1) * -40,
-          ease: "none",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: true,
-          }
-        });
-      });
-
-      // Scanning animation
-      if (scannerRef.current) {
-        gsap.to(scannerRef.current, {
-          opacity: 1,
-          duration: 0.5,
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 60%",
-            once: true,
-            onEnter: () => {
-              gsap.fromTo(scannerRef.current, 
-                { y: "-100%" }, 
-                { y: "1000%", duration: 2.5, ease: "none", onComplete: () => {
-                  if (scannerRef.current) scannerRef.current.style.opacity = "0";
-                }}
-              );
-            }
-          }
-        });
-      }
     }, sectionRef);
-
     return () => ctx.revert();
   }, []);
 
@@ -122,127 +65,251 @@ export default function PainSection() {
   };
 
   const count = checked.size;
-  const monthlyLeakage = count * MONTHLY_LEAKAGE_PER_ITEM;
+  const monthlyLoss = count * MONTHLY_LOSS_PER_ITEM;
 
   return (
-    <section id="problem" ref={sectionRef} className={styles.painSection}>
-      {/* Background elements */}
-      <div className={styles.background}>
-        <div className={styles.grid} />
-        <div className={styles.scanline} />
-        <div className={styles.glowBlue} />
-        <div className={styles.glowAmber} />
-        {floatingLabels.map((label, idx) => (
-          <span 
-            key={idx} 
-            className={styles.floatingLabel} 
-            style={{ 
-              top: label.top, 
-              left: label.left, 
-              right: label.right, 
-              bottom: label.bottom 
-            }}
-          >
-            {label.text}
-          </span>
-        ))}
-      </div>
-
-      <div ref={scannerRef} className={styles.scannerLine} />
-
-      <div className={styles.container}>
-        <div className={styles.topRow}>
-          <div className={styles.heading}>
-            <span className={styles.eyebrow}>
-              Operational Infrastructure Gap
+    <section
+      id="systems"
+      ref={sectionRef}
+      style={{ background: "#0a0a0f", padding: "120px 0" }}
+    >
+      <div style={{ maxWidth: "var(--container-width)", margin: "0 auto", padding: "0 24px" }}>
+        {/* Two-column header */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "64px",
+            alignItems: "start",
+            marginBottom: "64px",
+          }}
+          className="pain-two-col"
+        >
+          <div className="pain-heading">
+            <span
+              style={{
+                fontSize: "11px",
+                fontWeight: 700,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--color-text-faint)",
+                display: "block",
+                marginBottom: "16px",
+              }}
+            >
+              The Problem
             </span>
-            <h2 className={styles.title}>
-              Most companies do not need more tools. They need an operating layer.
+            <h2
+              style={{
+                fontSize: "clamp(28px, 4vw, 48px)",
+                fontWeight: 800,
+                color: "#f0f2ff",
+                lineHeight: 1.1,
+                letterSpacing: "-0.025em",
+                marginBottom: "20px",
+              }}
+            >
+              Your team is smart. Your tools are expensive. And yet nothing works together.
             </h2>
-            <p className={styles.subtitle}>
-              Manual work is rarely one broken process. It is the space between tools, teams,
-              handoffs, and reporting. FlowOps starts by mapping that space before recommending
-              any system.
+            <p style={{ color: "var(--color-text-muted)", lineHeight: 1.7, fontSize: "16px" }}>
+              These aren&apos;t process problems. They&apos;re system problems. And they compound every week.
             </p>
           </div>
 
-          {/* Diagnostic Meter */}
-          <div className={styles.meter}>
-            <div className={styles.meterLabel}>
-              <span>Signals selected</span>
-              <span>Status: Map ready</span>
+          {/* Live counter */}
+          <div
+            style={{
+              background: "var(--color-bg-card)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "16px",
+              padding: "32px",
+              alignSelf: "start",
+            }}
+          >
+            <p style={{ color: "var(--color-text-faint)", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px" }}>
+              Problems recognized
+            </p>
+            <div style={{ fontSize: "48px", fontWeight: 800, color: "#f0f2ff", lineHeight: 1, marginBottom: "8px" }}>
+              {count} <span style={{ fontSize: "20px", color: "var(--color-text-faint)", fontWeight: 500 }}>of 8</span>
             </div>
-            <div className={styles.meterValue}>
-              {count} <span className={styles.meterTotal}>of 8</span>
-            </div>
-            
-            <div className={styles.lossWrapper}>
-              <p className={styles.lossLabel}>Est. monthly leakage</p>
-              <div className={styles.lossValue}>
-                ${monthlyLeakage.toLocaleString()}
+            {count > 0 && (
+              <div style={{ marginTop: "16px" }}>
+                <p style={{ color: "var(--color-text-faint)", fontSize: "12px", marginBottom: "4px" }}>Est. monthly loss</p>
+                <div style={{ fontSize: "32px", fontWeight: 800, color: "#f59e0b" }}>
+                  ${monthlyLoss.toLocaleString()}
+                </div>
               </div>
-            </div>
-
+            )}
             {ctaVisible && (
               <button
-                className={styles.ctaButton}
-                data-cursor="pointer"
                 onClick={() => {
-                  const audit = document.getElementById("audit");
-                  if (audit) audit.scrollIntoView({ behavior: "smooth" });
+                  const el = document.getElementById("roi");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
                 }}
+                style={{
+                  marginTop: "20px",
+                  width: "100%",
+                  padding: "12px 20px",
+                  background: "#f59e0b",
+                  color: "#000",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  cursor: "none",
+                  transition: "background 0.2s",
+                }}
+                onMouseEnter={(e) => ((e.target as HTMLButtonElement).style.background = "#fbbf24")}
+                onMouseLeave={(e) => ((e.target as HTMLButtonElement).style.background = "#f59e0b")}
               >
-                Map this in an audit →
+                That&apos;s ${monthlyLoss.toLocaleString()}/month. Let&apos;s fix it →
               </button>
             )}
           </div>
         </div>
 
-        {/* Diagnostic cards grid */}
-        <div className={styles.cardsGrid}>
+        {/* Pain cards grid */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: "12px",
+          }}
+        >
           {PAIN_ITEMS.map((item, i) => {
             const isChecked = checked.has(i);
             return (
               <button
                 key={i}
-                className={`${styles.card} ${isChecked ? styles.cardActive : ""}`}
+                className="pain-card"
                 onClick={() => toggle(i)}
-                data-cursor="scanner"
+                style={{
+                  background: "var(--color-bg-card)",
+                  border: isChecked ? "1px solid rgba(59,130,246,0.5)" : "1px solid rgba(255,255,255,0.07)",
+                  borderLeft: isChecked ? "3px solid #3b82f6" : "1px solid rgba(255,255,255,0.07)",
+                  borderRadius: "12px",
+                  padding: "20px",
+                  textAlign: "left",
+                  cursor: "none",
+                  display: "flex",
+                  gap: "14px",
+                  alignItems: "flex-start",
+                  transition: "border 0.25s, box-shadow 0.25s",
+                  boxShadow: isChecked ? "var(--shadow-blue)" : "none",
+                  opacity: 0,
+                }}
               >
-                <div className={`${styles.checkbox} ${isChecked ? styles.checkboxActive : ""}`}>
-                  {isChecked && <Check className={styles.checkIcon} />}
+                {/* Checkbox */}
+                <div
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    minWidth: "20px",
+                    borderRadius: "6px",
+                    border: isChecked ? "2px solid #3b82f6" : "2px solid rgba(255,255,255,0.15)",
+                    background: isChecked ? "#3b82f6" : "transparent",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginTop: "2px",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {isChecked && (
+                    <span
+                      style={{
+                        color: "white",
+                        fontSize: "12px",
+                        fontWeight: 700,
+                        lineHeight: 1,
+                        transform: "scale(1)",
+                        transition: "transform 0.2s",
+                      }}
+                    >
+                      ✓
+                    </span>
+                  )}
                 </div>
-                <div className={styles.cardContent}>
-                  <span className={`${styles.cardNumber} ${isChecked ? styles.cardNumberActive : ""}`}>
-                    0{i + 1}
+                <span
+                  style={{
+                    fontSize: "14px",
+                    color: isChecked ? "var(--color-text)" : "var(--color-text-muted)",
+                    lineHeight: 1.6,
+                    transition: "color 0.2s",
+                  }}
+                >
+                  <span style={{ color: "var(--color-text-faint)", marginRight: "6px", fontWeight: 600 }}>
+                    {String(i + 1).padStart(2, "0")}.
                   </span>
-                  <span className={`${styles.cardText} ${isChecked ? styles.cardTextActive : ""}`}>
-                    {item}
-                  </span>
-                </div>
+                  {item}
+                </span>
               </button>
             );
           })}
         </div>
 
-        {/* Live diagnostic bar */}
-        <div className={styles.bottomBar}>
-          <p className={styles.bottomText}>
-            Diagnostic: <span className={styles.bottomHighlight}>{count} issues</span> detected. 
-            Planning estimate: <span className={styles.bottomLoss}>${monthlyLeakage.toLocaleString()}/mo</span> in recoverable leakage.
+        {/* Bottom counter bar */}
+        <div
+          style={{
+            marginTop: "40px",
+            padding: "20px 28px",
+            background: "rgba(15,16,23,0.8)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            borderRadius: "12px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "16px",
+          }}
+        >
+          <p style={{ color: "var(--color-text-muted)", fontSize: "14px", margin: 0 }}>
+            You&apos;ve recognized{" "}
+            <span style={{ color: "#f0f2ff", fontWeight: 700 }}>{count}</span>{" "}
+            of 8 problems — that&apos;s roughly{" "}
+            <span style={{ color: "#f59e0b", fontWeight: 700 }}>
+              ${monthlyLoss.toLocaleString()}
+            </span>{" "}
+            in lost productivity per month.
           </p>
           <button
-            className={styles.secondaryCta}
-            data-cursor="pointer"
             onClick={() => {
-              const audit = document.getElementById("audit");
-              if (audit) audit.scrollIntoView({ behavior: "smooth" });
+              const el = document.getElementById("roi");
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+            }}
+            style={{
+              background: "none",
+              border: "1px solid rgba(255,255,255,0.14)",
+              color: "var(--color-text-muted)",
+              padding: "8px 18px",
+              borderRadius: "8px",
+              fontSize: "13px",
+              cursor: "none",
+              fontWeight: 500,
+              transition: "border-color 0.2s, color 0.2s",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => {
+              const btn = e.target as HTMLButtonElement;
+              btn.style.borderColor = "#3b82f6";
+              btn.style.color = "var(--color-text)";
+            }}
+            onMouseLeave={(e) => {
+              const btn = e.target as HTMLButtonElement;
+              btn.style.borderColor = "rgba(255,255,255,0.14)";
+              btn.style.color = "var(--color-text-muted)";
             }}
           >
-            Request audit map →
+            Calculate your loss →
           </button>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .pain-two-col { grid-template-columns: 1fr !important; gap: 32px !important; }
+        }
+      `}</style>
     </section>
   );
 }

@@ -1,46 +1,50 @@
 "use client";
 
-import { ChevronDown, ClipboardCheck, Layers3, Play, Radar, RefreshCcw } from "lucide-react";
+import { ChevronDown, Clock3, Play, Sparkles, TrendingDown, Zap } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { gsap } from "@/lib/gsap";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import styles from "./HeroSection.module.css";
 
+gsap.registerPlugin(ScrollTrigger);
+
 const headlineParts = [
-  "FlowOps",
-  "OS",
-  "for",
-  "companies",
+  "Stop",
   "running",
+  "your",
+  "business",
   "on",
-  "messy",
-  "manual",
-  "work.",
+  "spreadsheets,",
+  "Slack",
+  "messages,",
+  "and",
+  "hope.",
 ] as const;
 
 const badges = [
   {
-    title: "Audit first",
-    sub: "workflow map and priority stack",
-    icon: ClipboardCheck,
+    title: "40+ live systems",
+    sub: "deployed in production",
+    icon: Zap,
     tone: "amber",
   },
   {
-    title: "Packaged systems",
-    sub: "LeadOS, SalesOS, VoiceOS and more",
-    icon: Layers3,
+    title: "5–10 day delivery",
+    sub: "from brief to live",
+    icon: Clock3,
     tone: "amber",
   },
   {
-    title: "Operations radar",
-    sub: "bottlenecks, gaps, and handoffs",
-    icon: Radar,
+    title: "-68% manual work",
+    sub: "average across clients",
+    icon: TrendingDown,
     tone: "amber",
   },
   {
-    title: "Maintained layer",
-    sub: "monitor, improve, and expand monthly",
-    icon: RefreshCcw,
+    title: "3× team output",
+    sub: "same headcount",
+    icon: Sparkles,
     tone: "blue",
   },
 ] as const;
@@ -58,7 +62,7 @@ export default function HeroSection() {
         return (
           <span
             // GSAP targets the global word class requested in the brief.
-            className={`${styles.word} word ${word === "work." ? "gradient-text" : ""}`}
+            className={`${styles.word} word ${word === "hope." ? "gradient-text" : ""}`}
             key={`${word}-${index}`}
           >
             {content}
@@ -134,32 +138,6 @@ export default function HeroSection() {
     }
 
     let timeline: gsap.core.Timeline | undefined;
-    let seekFrame: number | null = null;
-    let pendingVideoTime: number | null = null;
-    let lastVideoTime = -1;
-
-    const scheduleVideoSeek = (time: number) => {
-      pendingVideoTime = time;
-
-      if (seekFrame !== null) {
-        return;
-      }
-
-      seekFrame = requestAnimationFrame(() => {
-        seekFrame = null;
-
-        if (pendingVideoTime === null || Math.abs(pendingVideoTime - lastVideoTime) < 0.04) {
-          return;
-        }
-
-        try {
-          video.currentTime = pendingVideoTime;
-          lastVideoTime = pendingVideoTime;
-        } catch {
-          // Some browsers can reject seeks before enough video data is buffered.
-        }
-      });
-    };
 
     const setupScrollScrub = () => {
       const duration = Number.isFinite(video.duration) ? video.duration : 0;
@@ -177,67 +155,30 @@ export default function HeroSection() {
             if (!duration) return;
 
             const videoProgress = Math.min(self.progress / 0.7, 1);
-            scheduleVideoSeek(videoProgress * duration);
+            try {
+              video.currentTime = videoProgress * duration;
+            } catch {
+              // Some browsers can reject seeks before enough video data is buffered.
+            }
           },
         },
       });
 
       timeline
-        .to("#hero-eyebrow", { opacity: 0, y: -20, duration: 0.15 }, 0)
+        .to("#hero-eyebrow", { opacity: 0, y: -10, duration: 0.15 }, 0)
         .to("#hero-scroll-hint", { opacity: 0, duration: 0.1 }, 0)
-        
-        // Content Exit (Dynamic & Cinematic)
-        .to("#hero-h1", { 
-          opacity: 0, 
-          y: -100, 
-          scale: 0.95, 
-          filter: "blur(20px)", 
-          duration: 0.4,
-          ease: "power2.in" 
-        }, 0.1)
-        .to("#hero-sub", { 
-          opacity: 0, 
-          y: -60, 
-          filter: "blur(10px)", 
-          duration: 0.35,
-          ease: "power2.in" 
-        }, 0.15)
-        .to("#hero-ctas", { 
-          opacity: 0, 
-          y: -40, 
-          filter: "blur(10px)", 
-          duration: 0.3,
-          ease: "power2.in" 
-        }, 0.18)
-
+        .to("#hero-h1", { opacity: 0.7, scale: 1.01, duration: 0.25 }, 0.15)
+        .to("#hero-sub", { opacity: 0, y: -16, duration: 0.2 }, 0.2)
+        .to("#hero-ctas", { opacity: 0, y: -12, duration: 0.2 }, 0.2)
         .to("#hero-transform", { opacity: 1, duration: 0.2 }, 0.4)
+        .to("#hero-h1", { opacity: 0, duration: 0.15 }, 0.45)
         .to("#hero-from", { opacity: 1, y: 0, duration: 0.2 }, 0.48)
         .to("#hero-to", { opacity: 1, y: 0, duration: 0.2 }, 0.55)
-        
-        // Badges Entrance & Exit
-        .to("#hero-badges", { opacity: 1, duration: 0.2 }, 0.6)
-        .fromTo("#hero-badges .badge", 
-          { y: 60, opacity: 0 }, 
-          { y: 0, opacity: 1, stagger: 0.05, duration: 0.3 }, 
-          0.62
-        )
-        .to("#hero-badges .badge", { 
-          y: -100, 
-          opacity: 0, 
-          stagger: 0.05, 
-          filter: "blur(15px)",
-          duration: 0.4 
-        }, 0.8)
-
-        .to("#hero-transform", { 
-          opacity: 0, 
-          y: -50, 
-          filter: "blur(20px)",
-          duration: 0.2 
-        }, 0.85)
-        
+        .to("#hero-badges", { opacity: 1, duration: 0.15 }, 0.62)
+        .to("#hero-transform", { opacity: 0, duration: 0.15 }, 0.8)
+        .to("#hero-badges", { opacity: 0, duration: 0.15 }, 0.82)
         .to(".hero-vignette", { opacity: 1, duration: 0.2 }, 0.85)
-        .to("#hero-exit-overlay", { opacity: 1, duration: 0.35, ease: "power1.in" }, 0.85);
+        .to("#hero-exit-overlay", { opacity: 1, duration: 0.2 }, 0.85);
 
       timeline.scrollTrigger?.refresh();
     };
@@ -250,9 +191,6 @@ export default function HeroSection() {
 
     return () => {
       video.removeEventListener("loadedmetadata", setupScrollScrub);
-      if (seekFrame !== null) {
-        cancelAnimationFrame(seekFrame);
-      }
       timeline?.scrollTrigger?.kill();
       timeline?.kill();
     };
@@ -282,7 +220,7 @@ export default function HeroSection() {
       <div className={styles.content}>
         <p className={styles.eyebrow} id="hero-eyebrow">
           <span className={styles.pulseDot} aria-hidden="true" />
-          AI Operations Platform · FlowOps OS
+          AI Automation Agency · 40+ systems deployed
         </p>
 
         <h1 className={styles.headline} id="hero-h1">
@@ -290,32 +228,31 @@ export default function HeroSection() {
         </h1>
 
         <p className={styles.subheadline} id="hero-sub">
-          FlowOps audits the work your team still handles by hand, identifies the highest-value
-          automation opportunities, deploys packaged AI systems, and keeps them running through
-          recurring AI operations subscriptions.
+          FlowOps designs and deploys AI-powered automation systems that eliminate manual work,
+          connect your tools, and scale your output — without hiring.
         </p>
 
         <div className={styles.ctas} id="hero-ctas">
           <a className={styles.primaryButton} href="#contact" data-cursor="pointer">
-            Get Free AI Operations Audit
+            Get a free audit →
           </a>
           <a className={styles.ghostButton} href="#systems" data-cursor="pointer">
             <Play className={styles.playIcon} aria-hidden="true" />
-            Explore Systems
+            See live systems
           </a>
         </div>
 
         <p className={styles.trustLine}>
-          No tool replacement required · Built around your existing stack · Start with diagnosis, not guesswork
+          No commitment required · Audit response within 1 business day
         </p>
       </div>
 
       <div className={styles.transformText} id="hero-transform">
         <p className={styles.fromText} id="hero-from">
-          From: disconnected tools, missed leads, and manual follow-up.
+          From: tools that don&apos;t talk to each other.
         </p>
         <p className={styles.toText} id="hero-to">
-          To: an operations layer that <span className="gradient-text">audits, routes,</span> and improves.
+          To: one system that <span className="gradient-text">thinks, routes,</span> and executes.
         </p>
       </div>
 

@@ -6,12 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "check:env": "node scripts/check-env.mjs"
+    "lint": "eslint"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
-    "@supabase/supabase-js": "^2.106.0",
     "framer-motion": "^12.38.0",
     "googleapis": "^171.4.0",
     "gsap": "^3.15.0",

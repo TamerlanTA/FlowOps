@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 
 import { LenisProvider } from "@/components/providers/LenisProvider";
 import { CustomCursor } from "@/components/ui/CustomCursor";
-import Preloader from "@/components/ui/Preloader";
 import "./globals.css";
 
 const inter = Inter({
@@ -14,14 +13,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "FlowOps OS - AI Operations Platform",
+  title: "FlowOps - AI Automation Systems",
   description:
-    "FlowOps OS audits messy operations, identifies automation opportunities, deploys packaged AI systems, and maintains them through recurring AI operations subscriptions.",
+    "FlowOps designs and builds AI-powered automation systems for sales, operations, reporting, and internal teams.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://flowops.agency"),
   openGraph: {
-    title: "FlowOps OS - AI Operations Platform",
+    title: "FlowOps - AI Automation Systems",
     description:
-      "An AI operations system for companies running on manual work, disconnected tools, slow follow-ups, and reporting gaps.",
+      "AI automation systems for real operations: CRM workflows, AI assistants, dashboards, reporting, and business process automation.",
     type: "website",
   },
 };
@@ -45,7 +44,6 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body style={{ background: "#000000" }} suppressHydrationWarning>
-        <Preloader />
         <CustomCursor />
         <LenisProvider>{children}</LenisProvider>
       </body>

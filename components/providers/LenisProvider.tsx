@@ -17,16 +17,8 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
   const [lenis, setLenis] = useState<LenisContextValue>(null);
 
   useEffect(() => {
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const touchLikeViewport =
-      window.matchMedia("(pointer: coarse)").matches || window.matchMedia("(max-width: 767px)").matches;
-
-    if (reduceMotion || touchLikeViewport) {
-      return undefined;
-    }
-
     const lenisInstance = new Lenis({
-      duration: 0.9,
+      duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       smoothWheel: true,
@@ -40,13 +32,9 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
     lenisInstance.on("scroll", updateScrollTrigger);
     gsap.ticker.add(raf);
     gsap.ticker.lagSmoothing(0);
-
-    const stateFrame = requestAnimationFrame(() => {
-      setLenis(lenisInstance);
-    });
+    setLenis(lenisInstance);
 
     return () => {
-      cancelAnimationFrame(stateFrame);
       lenisInstance.off("scroll", updateScrollTrigger);
       gsap.ticker.remove(raf);
       lenisInstance.destroy();

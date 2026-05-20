@@ -3,45 +3,50 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "@/lib/gsap";
-import { Plus } from "lucide-react";
-import styles from "./FAQSection.module.css";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const FAQS = [
   {
-    q: "What is the free AI Operations Audit?",
-    a: "It is a structured review of your workflows, tools, handoffs, reporting gaps, and manual work. The output is a workflow map, automation opportunity list, ROI estimate, recommended FlowOps OS systems, and an implementation roadmap.",
+    q: "How much does it cost?",
+    a: "Projects start at $3,000 for a focused single-system automation and scale based on complexity, integrations, and team size. We quote every project after the discovery call — not before, because cookie-cutter pricing leads to cookie-cutter systems. The audit call is always free.",
   },
   {
-    q: "Is FlowOps OS a software product or a service?",
-    a: "This first version is a productized AI operations offer: packaged systems, a clear audit-to-deploy process, and recurring operations subscriptions. It is intentionally presented like an operations platform, without adding a backend or real client portal yet.",
+    q: "How long does it take to go live?",
+    a: "Most systems are deployed and live within 5–10 business days of the kickoff. Complex multi-system builds with custom integrations can take 2–3 weeks. We've never missed a committed deployment date.",
   },
   {
-    q: "Which systems can we start with?",
-    a: "Most teams start with LeadOS, SalesOS, VoiceOS, InboxOS, OpsOS, or ReportOS. The audit determines which system has the clearest operational value and lowest implementation risk.",
+    q: "What tools do we need to have in place?",
+    a: "None, specifically. We work with the tools you already use — CRM, messaging platforms, e-commerce systems, spreadsheets, ERPs. If you don't have the right tools yet, we'll tell you what to get and why.",
   },
   {
-    q: "Do you replace our existing tools?",
-    a: "Usually no. FlowOps OS is designed as an operating layer around the tools already in place: CRM, inbox, forms, phones, spreadsheets, dashboards, project management, support tools, and internal chat.",
+    q: "Do we need a technical team or developer on our side?",
+    a: "No. We handle the full build and deployment. Your team needs zero technical knowledge to use or maintain the system after handoff. We build for operations teams, not developers.",
   },
   {
-    q: "Why are subscriptions part of the offer?",
-    a: "Operations change after launch. Fields are renamed, lead sources shift, teams change handoffs, and exceptions appear. The subscription keeps systems maintained, improved, and aligned with the business.",
+    q: "What if the automation breaks or something goes wrong?",
+    a: "Every project includes 30 days of post-launch support. We monitor, fix, and adjust at no additional charge. After the 30 days, we offer ongoing maintenance retainers for teams who want continued support.",
   },
   {
-    q: "Do we need a developer or technical team?",
-    a: "No. The work is designed for operators and leadership teams. FlowOps handles the system design, implementation, documentation, and ongoing operating rhythm.",
+    q: "Which industries do you work with?",
+    a: "E-commerce, B2B SaaS, professional services, logistics, real estate, healthcare ops, fintech, and retail. If your business has repetitive processes and more than 5 people, we can almost certainly help.",
   },
   {
-    q: "How is this different from hiring a developer or buying another no-code platform?",
-    a: "A developer builds what you specify. A platform gives you more tools. FlowOps starts from the operating problem, maps the workflow, recommends the right system, deploys it, and maintains it as part of a recurring AI operations model.",
+    q: "How is FlowOps different from hiring a developer or using a no-code platform?",
+    a: "A developer builds what you spec. A no-code platform gives you tools. FlowOps gives you a finished, running system — architected, built, tested, and documented. We're responsible for the outcome, not just the code.",
   },
   {
-    q: "Can you audit a process we already tried to automate?",
+    q: "Can you automate something we already tried to automate and failed?",
     a: "Yes — this is actually one of our most common starting points. Failed automations usually fail because of poor architecture, not bad tooling. We audit what was built, identify why it broke, and redesign from the right foundation.",
   },
   {
-    q: "How do we start?",
-    a: "Request the free audit. Share the workflow, tools, and manual bottlenecks. FlowOps reviews the snapshot and responds with the next step within one business day.",
+    q: "Do you offer ongoing work after the initial build?",
+    a: "Yes. Many clients start with one system and come back for the next. We offer project-based builds and monthly retainers for teams who want continuous automation development.",
+  },
+  {
+    q: "How do we get started?",
+    a: "Fill out the audit request form below. Describe your process, your tools, and where you're losing time. We review every request personally and respond within one business day with a call slot.",
   },
 ];
 
@@ -52,14 +57,26 @@ export default function FAQSection() {
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.fromTo(
-        `.${styles.heading}`,
-        { opacity: 0, x: -30 },
+        ".faq-heading",
+        { opacity: 0, y: 44 },
         {
           opacity: 1,
-          x: 0,
+          y: 0,
           duration: 1,
           ease: "power3.out",
-          scrollTrigger: { trigger: `.${styles.heading}`, start: "top 85%", once: true },
+          scrollTrigger: { trigger: ".faq-heading", start: "top 82%", once: true },
+        }
+      );
+      gsap.fromTo(
+        ".faq-item",
+        { opacity: 0, y: 24 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.7,
+          ease: "power3.out",
+          stagger: 0.06,
+          scrollTrigger: { trigger: ".faq-item", start: "top 82%", once: true },
         }
       );
     }, sectionRef);
@@ -67,56 +84,116 @@ export default function FAQSection() {
   }, []);
 
   return (
-    <section id="faq" ref={sectionRef} className={styles.section}>
-      <div className={styles.container}>
-        <div className={styles.grid}>
-          {/* Left Side */}
-          <div className={styles.heading}>
-              <span className={styles.eyebrow}>Knowledge Base</span>
-              <h2 className={styles.title}>FlowOps OS FAQ</h2>
-              <p className={styles.description}>
-              Answers for teams evaluating FlowOps as an AI operations layer rather than a one-off automation vendor.
-            </p>
-          </div>
+    <section ref={sectionRef} style={{ background: "#0a0a0f", padding: "120px 0" }}>
+      <div style={{ maxWidth: "720px", margin: "0 auto", padding: "0 24px" }}>
+        {/* Header */}
+        <div className="faq-heading" style={{ textAlign: "center", marginBottom: "56px" }}>
+          <span
+            style={{
+              fontSize: "11px",
+              fontWeight: 700,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "var(--color-text-faint)",
+              display: "block",
+              marginBottom: "16px",
+            }}
+          >
+            Frequently Asked
+          </span>
+          <h2
+            style={{
+              fontSize: "clamp(28px, 4vw, 48px)",
+              fontWeight: 800,
+              color: "#f0f2ff",
+              lineHeight: 1.1,
+              letterSpacing: "-0.025em",
+              marginBottom: "16px",
+            }}
+          >
+            Everything you want to know before we talk.
+          </h2>
+          <p style={{ color: "var(--color-text-muted)", fontSize: "16px", lineHeight: 1.7 }}>
+            No sales pitch. Just honest answers.
+          </p>
+        </div>
 
-          {/* Right Side: Accordion */}
-          <div className={styles.panel}>
-            <div className={styles.accordion}>
-              {FAQS.map((faq, i) => (
-                <div 
-                  key={i} 
-                  className={`${styles.item} ${open === i ? styles.itemOpen : ""}`}
+        {/* Accordion */}
+        <div>
+          {FAQS.map((faq, i) => (
+            <div
+              key={i}
+              className="faq-item"
+              style={{
+                borderBottom: "1px solid rgba(255,255,255,0.07)",
+                opacity: 0,
+              }}
+            >
+              <button
+                onClick={() => setOpen(open === i ? null : i)}
+                style={{
+                  width: "100%",
+                  background: "none",
+                  border: "none",
+                  cursor: "none",
+                  padding: "20px 0",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "16px",
+                  textAlign: "left",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: 600,
+                    color: open === i ? "#3b82f6" : "var(--color-text)",
+                    lineHeight: 1.4,
+                    transition: "color 0.2s",
+                  }}
                 >
-                  <button
-                    className={styles.trigger}
-                    onClick={() => setOpen(open === i ? null : i)}
-                    data-cursor="pointer"
+                  {faq.q}
+                </span>
+                <span
+                  style={{
+                    color: "var(--color-text-faint)",
+                    fontSize: "18px",
+                    display: "inline-block",
+                    transform: open === i ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.3s",
+                    minWidth: "20px",
+                    textAlign: "center",
+                  }}
+                >
+                  ⌄
+                </span>
+              </button>
+
+              <AnimatePresence>
+                {open === i && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    style={{ overflow: "hidden" }}
                   >
-                    <span className={`${styles.question} ${open === i ? styles.questionActive : ""}`}>
-                      {faq.q}
-                    </span>
-                    <Plus className={`${styles.icon} ${open === i ? styles.iconActive : ""}`} />
-                  </button>
-                  
-                  <AnimatePresence>
-                    {open === i && (
-                      <motion.div
-                        className={styles.answer}
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <div className={styles.answerInner}>
-                          {faq.a}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ))}
+                    <p
+                      style={{
+                        fontSize: "15px",
+                        color: "var(--color-text-muted)",
+                        lineHeight: 1.75,
+                        paddingBottom: "20px",
+                      }}
+                    >
+                      {faq.a}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>

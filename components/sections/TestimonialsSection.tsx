@@ -2,7 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import { gsap } from "@/lib/gsap";
-import styles from "./TestimonialsSection.module.css";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const TESTIMONIALS = [
   {
@@ -55,26 +57,67 @@ const TESTIMONIALS = [
   },
 ];
 
-function TestimonialCard({ t, signalIndex }: { t: typeof TESTIMONIALS[0], signalIndex: number }) {
-  const signalId = `SIG-${(signalIndex + 1).toString().padStart(3, '0')}`;
-  
+function TestimonialCard({ t }: { t: typeof TESTIMONIALS[0] }) {
   return (
-    <div className={styles.card} data-cursor="glow">
-      <div className={styles.cardHeader}>
-        <div className={styles.signalBadge}>SIGNAL: {signalId}</div>
-        <div className={styles.impactBadge}>DELIVERY VERIFIED</div>
+    <div
+      style={{
+        background: "#0f1017",
+        border: "1px solid rgba(255,255,255,0.07)",
+        borderRadius: "14px",
+        padding: "20px 24px",
+        minWidth: "320px",
+        maxWidth: "360px",
+        flexShrink: 0,
+        position: "relative",
+      }}
+    >
+      {/* Company badge */}
+      <span
+        style={{
+          position: "absolute",
+          top: "16px",
+          right: "16px",
+          fontSize: "10px",
+          fontWeight: 600,
+          color: "#60a5fa",
+          background: "rgba(59,130,246,0.1)",
+          padding: "3px 8px",
+          borderRadius: "100px",
+        }}
+      >
+        {t.tag}
+      </span>
+
+      {/* Stars */}
+      <div style={{ marginBottom: "12px", marginTop: "4px" }}>
+        {"★★★★★".split("").map((s, i) => (
+          <span key={i} style={{ color: "#f59e0b", fontSize: "14px" }}>
+            {s}
+          </span>
+        ))}
       </div>
 
-      <p className={styles.quote}>&ldquo;{t.quote}&rdquo;</p>
+      {/* Quote */}
+      <p
+        style={{
+          fontSize: "13px",
+          color: "var(--color-text-muted)",
+          lineHeight: 1.7,
+          fontStyle: "italic",
+          marginBottom: "16px",
+        }}
+      >
+        &ldquo;{t.quote}&rdquo;
+      </p>
 
-      <div className={styles.authorBox}>
-        <div className={styles.authorInfo}>
-          <span className={styles.name}>{t.author}</span>
-          <span className={styles.company}>{t.company}</span>
-        </div>
-        <div style={{ marginLeft: 'auto', fontSize: '10px', color: 'var(--color-text-faint)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-          {t.tag.toUpperCase()}
-        </div>
+      {/* Author */}
+      <div>
+        <span style={{ fontSize: "13px", fontWeight: 600, color: "#f0f2ff" }}>
+          {t.author}
+        </span>
+        <span style={{ color: "var(--color-text-faint)", fontSize: "12px", marginLeft: "6px" }}>
+          · {t.company}
+        </span>
       </div>
     </div>
   );
@@ -84,19 +127,19 @@ export default function TestimonialsSection() {
   const sectionRef = useRef<HTMLElement>(null);
 
   const row1 = [...TESTIMONIALS, ...TESTIMONIALS];
-  const row2 = [...TESTIMONIALS.slice(4), ...TESTIMONIALS.slice(4), ...TESTIMONIALS.slice(0, 4)];
+  const row2 = [...TESTIMONIALS.slice(4), ...TESTIMONIALS.slice(4)];
 
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.fromTo(
-        `.${styles.header}`,
-        { opacity: 0, y: 40 },
+        ".testimonials-heading",
+        { opacity: 0, y: 44 },
         {
           opacity: 1,
           y: 0,
           duration: 1,
           ease: "power3.out",
-          scrollTrigger: { trigger: `.${styles.header}`, start: "top 85%", once: true },
+          scrollTrigger: { trigger: ".testimonials-heading", start: "top 82%", once: true },
         }
       );
     }, sectionRef);
@@ -104,29 +147,92 @@ export default function TestimonialsSection() {
   }, []);
 
   return (
-    <section id="testimonials" ref={sectionRef} className={styles.section}>
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <span className={styles.eyebrow}>Client Signal Feed</span>
-          <h2 className={styles.title}>Validation from the deployment front.</h2>
+    <section ref={sectionRef} style={{ background: "#000000", padding: "120px 0", overflow: "hidden" }}>
+      <div style={{ maxWidth: "var(--container-width)", margin: "0 auto", padding: "0 24px", marginBottom: "56px" }}>
+        <div className="testimonials-heading" style={{ textAlign: "center" }}>
+          <span
+            style={{
+              fontSize: "11px",
+              fontWeight: 700,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "var(--color-text-faint)",
+              display: "block",
+              marginBottom: "16px",
+            }}
+          >
+            What Clients Say
+          </span>
+          <h2
+            style={{
+              fontSize: "clamp(28px, 4vw, 48px)",
+              fontWeight: 800,
+              color: "#f0f2ff",
+              lineHeight: 1.1,
+              letterSpacing: "-0.025em",
+            }}
+          >
+            Real words. Real results.
+          </h2>
         </div>
       </div>
 
-      <div className={styles.marqueeContainer}>
-        {/* Row 1 */}
-        <div className={`${styles.marqueeRow} ${styles.scrollLeft}`}>
-          {row1.map((t, i) => (
-            <TestimonialCard key={i} t={t} signalIndex={i % TESTIMONIALS.length} />
-          ))}
-        </div>
-
-        {/* Row 2 */}
-        <div className={`${styles.marqueeRow} ${styles.scrollRight}`}>
-          {row2.map((t, i) => (
-            <TestimonialCard key={i} t={t} signalIndex={(i + 4) % TESTIMONIALS.length} />
-          ))}
-        </div>
+      {/* Row 1: moves left */}
+      <div
+        style={{
+          display: "flex",
+          gap: "16px",
+          animation: "scrollLeft 30s linear infinite",
+          width: "max-content",
+          marginBottom: "16px",
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLDivElement).style.animationPlayState = "paused";
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLDivElement).style.animationPlayState = "running";
+        }}
+      >
+        {row1.map((t, i) => (
+          <TestimonialCard key={i} t={t} />
+        ))}
       </div>
+
+      {/* Row 2: moves right */}
+      <div
+        style={{
+          display: "flex",
+          gap: "16px",
+          animation: "scrollRight 38s linear infinite",
+          width: "max-content",
+          paddingLeft: "180px",
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLDivElement).style.animationPlayState = "paused";
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLDivElement).style.animationPlayState = "running";
+        }}
+      >
+        {row2.map((t, i) => (
+          <TestimonialCard key={i} t={t} />
+        ))}
+      </div>
+
+      <style>{`
+        @keyframes scrollLeft {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        @keyframes scrollRight {
+          0% { transform: translateX(-50%); }
+          100% { transform: translateX(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          @keyframes scrollLeft { 0%, 100% { transform: none; } }
+          @keyframes scrollRight { 0%, 100% { transform: none; } }
+        }
+      `}</style>
     </section>
   );
 }

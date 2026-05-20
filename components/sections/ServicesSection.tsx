@@ -3,180 +3,152 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "@/lib/gsap";
-import { CheckCircle2 } from "lucide-react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import styles from "./ServicesSection.module.css";
+gsap.registerPlugin(ScrollTrigger);
 
 const TABS = [
   {
-    id: "lead",
-    label: "LeadOS",
-    summary: "AI lead research and qualification.",
-    headline: "Qualify the right leads before they reach a human queue.",
-    description:
-      "LeadOS researches prospects, enriches records, scores fit, and routes high-priority opportunities into the right sales workflow.",
-    problem: "Lead quality is inconsistent and sales time is spent researching instead of prioritizing.",
-    workflows: ["Inbound enrichment", "Prospect scoring", "Review queue routing"],
-    recommendedFor: "Sales teams with many leads, mixed channels, or uneven qualification standards.",
-    deploymentStyle: "Connected to CRM, lead sources, enrichment tools, and human review gates.",
-    bullets: [
-      "Prospect research and enrichment",
-      "Fit and intent scoring",
-      "CRM-ready lead records",
-      "Duplicate and low-fit filtering",
-      "Sales-ready lead summaries",
-      "Manager review queues",
-    ],
-    result: "Best for companies with lead volume, inconsistent qualification, or sales teams spending too much time researching.",
-    nodes: [
-      { label: "Lead Source", status: "Input" },
-      { label: "Research", status: "AI" },
-      { label: "Score", status: "Logic" },
-      { label: "CRM Record", status: "Sync" },
-      { label: "Review Queue", status: "Ops" }
-    ],
-  },
-  {
     id: "sales",
-    label: "SalesOS",
-    summary: "CRM follow-up and pipeline automation.",
-    headline: "Turn follow-up from a memory problem into infrastructure.",
+    label: "Sales System",
+    headline: "Never lose a lead to a slow process again.",
     description:
-      "SalesOS keeps pipeline data clean, triggers follow-ups, alerts managers, and moves opportunities through the CRM with fewer manual gaps.",
-    problem: "Follow-up depends on memory, CRM hygiene drifts, and managers lose pipeline visibility.",
-    workflows: ["Follow-up recovery", "Stage hygiene", "Manager alerts"],
-    recommendedFor: "Teams with long sales cycles, slow response times, or unreliable CRM discipline.",
-    deploymentStyle: "Configured around CRM stages, owner rules, reminders, and escalation logic.",
+      "We automate the full sales motion — from first touch to closed deal. Lead capture, qualification, routing, follow-up sequences, CRM updates, and pipeline visibility. Your team focuses on selling. The system handles everything else.",
     bullets: [
-      "CRM stage hygiene",
-      "Follow-up sequence logic",
-      "Lead handoff and routing",
-      "Pipeline alerts",
-      "No-response recovery paths",
-      "Sales manager visibility",
+      "Omnichannel lead capture (WhatsApp, forms, calls, ads)",
+      "AI-powered lead qualification and scoring",
+      "Automatic CRM routing and task creation",
+      "Multi-step follow-up sequences (email + messenger)",
+      "Real-time pipeline and conversion dashboards",
+      "Manager alerts for high-value or stalled deals",
     ],
-    result: "Best for teams with slow response times, missed follow-ups, and unreliable CRM discipline.",
-    nodes: [
-      { label: "New Deal", status: "CRM" },
-      { label: "Rules", status: "Logic" },
-      { label: "Follow-up", status: "Auto" },
-      { label: "Manager Alert", status: "Ops" },
-      { label: "Pipeline View", status: "Live" }
-    ],
-  },
-  {
-    id: "voice",
-    label: "VoiceOS",
-    summary: "AI phone receptionist and caller.",
-    headline: "Answer, qualify, and route calls without losing the human handoff.",
-    description:
-      "VoiceOS handles inbound calls, captures context, qualifies the request, updates systems, and escalates to people when judgment is needed.",
-    problem: "Calls are missed, logged manually, or routed without enough context for the next step.",
-    workflows: ["Inbound qualification", "Call summaries", "Missed-call recovery"],
-    recommendedFor: "Companies where phone demand creates scheduling, routing, or logging overhead.",
-    deploymentStyle: "Layered around phone workflows, CRM records, scripts, and human handoff rules.",
-    bullets: [
-      "Inbound call capture",
-      "Qualification scripts",
-      "CRM and ticket updates",
-      "Call summaries",
-      "Escalation rules",
-      "Missed-call recovery",
-    ],
-    result: "Best for companies losing calls, manually logging conversations, or relying on overloaded reception workflows.",
-    nodes: [
-      { label: "Call", status: "Input" },
-      { label: "Voice Agent", status: "AI" },
-      { label: "Qualify", status: "Logic" },
-      { label: "CRM Update", status: "Sync" },
-      { label: "Escalate", status: "Human" }
-    ],
-  },
-  {
-    id: "inbox",
-    label: "InboxOS",
-    summary: "Email and support automation.",
-    headline: "Make inbox work visible, routed, and consistently answered.",
-    description:
-      "InboxOS triages inbound email and support requests, classifies intent, drafts responses, creates tasks, and escalates sensitive items.",
-    problem: "Important requests disappear inside shared inboxes and support queues.",
-    workflows: ["Intent classification", "Draft response", "SLA escalation"],
-    recommendedFor: "Support, operations, or admin teams managing high-volume inbound email.",
-    deploymentStyle: "Connected to inboxes, ticketing tools, approval steps, and response templates.",
-    bullets: [
-      "Email classification",
-      "Support request routing",
-      "Drafted replies",
-      "SLA and priority alerts",
-      "Task creation",
-      "Human approval flows",
-    ],
-    result: "Best for teams where important requests disappear inside shared inboxes or support queues.",
-    nodes: [
-      { label: "Inbox", status: "Input" },
-      { label: "Classify", status: "AI" },
-      { label: "Draft", status: "Assist" },
-      { label: "Route", status: "Ops" },
-      { label: "Escalate", status: "Human" }
-    ],
+    result: "Teams using our sales systems respond 5× faster and close 30% more of their pipeline.",
+    nodes: ["Lead In", "AI Qualify", "CRM Route", "Follow-up", "Close"],
   },
   {
     id: "ops",
-    label: "OpsOS",
-    summary: "Internal workflow automation.",
-    headline: "Give recurring operations a reliable execution layer.",
+    label: "Ops System",
+    headline: "Run operations that don't depend on people remembering things.",
     description:
-      "OpsOS connects internal tools, creates tasks, coordinates handoffs, enforces approvals, and keeps work moving across teams.",
-    problem: "Recurring operations are coordinated through chat, spreadsheets, and manual checklists.",
-    workflows: ["Task creation", "Approval routing", "Exception handling"],
-    recommendedFor: "Operations teams with repeatable handoffs across departments and tools.",
-    deploymentStyle: "Configured as workflow infrastructure across project, chat, and source systems.",
+      "We replace manual coordination with structured, automated workflows. Internal handoffs, approvals, task creation, alerts, and cross-tool execution — all triggered by events, not by humans chasing each other.",
     bullets: [
-      "Cross-tool workflow triggers",
-      "Task and approval routing",
-      "Internal alerts",
-      "Exception handling",
-      "Status updates",
-      "Operational runbooks",
+      "Order-to-operation workflows (Shopify, WooCommerce, custom)",
+      "Automated task creation in ClickUp, Notion, Linear, Jira",
+      "Internal approval chains with escalation logic",
+      "Cross-system data sync (ERP, CRM, support, logistics)",
+      "Scheduled and trigger-based reporting",
+      "Slack / Telegram / email alert routing",
     ],
-    result: "Best for operations teams coordinating work through chat, spreadsheets, and manual checklists.",
-    nodes: [
-      { label: "Trigger", status: "Event" },
-      { label: "Rules", status: "Logic" },
-      { label: "Task", status: "Auto" },
-      { label: "Approval", status: "Human" },
-      { label: "Update", status: "Live" }
-    ],
+    result: "Our ops systems eliminate an average of 12 hours of manual coordination per week per team.",
+    nodes: ["Trigger", "Rules", "Tasks", "Alerts", "Report"],
   },
   {
-    id: "report",
-    label: "ReportOS",
-    summary: "Dashboards and operational intelligence.",
-    headline: "Turn scattered activity into operating intelligence.",
+    id: "ai",
+    label: "AI Layer",
+    headline: "Add intelligence to the systems your business already runs on.",
     description:
-      "ReportOS consolidates workflow data into dashboards, recurring reports, operational alerts, and monthly recommendations.",
-    problem: "Leadership cannot see what is happening without manual exports and spreadsheet assembly.",
-    workflows: ["Health dashboard", "Ops report", "Recommendation queue"],
-    recommendedFor: "Teams that need visibility into saved hours, lead flow, automation health, and next improvements.",
-    deploymentStyle: "Connected to data sources and maintained as a monthly operating intelligence layer.",
+      "We build practical AI layers on top of your existing tools and workflows. Not experiments — production-grade assistants, processors, and classifiers that handle real volume and deliver measurable results from week one.",
     bullets: [
-      "Data source consolidation",
-      "Saved hours reporting",
-      "Lead flow visibility",
-      "Automation health signals",
-      "Monthly recommendations",
-      "Executive-ready summaries",
+      "AI sales and support assistants (WhatsApp, Telegram, website chat)",
+      "Document and data processing pipelines (PDFs, forms, contracts)",
+      "Lead research and outreach personalization at scale",
+      "Internal knowledge assistants for teams and onboarding",
+      "AI-powered classification, routing, and summarization",
+      "Prompt design, testing, and rollout standards",
     ],
-    result: "Best for leadership teams that need reliable operational visibility without manual spreadsheet assembly.",
-    nodes: [
-      { label: "Sources", status: "Data" },
-      { label: "Normalize", status: "Logic" },
-      { label: "Metrics", status: "Live" },
-      { label: "Dashboard", status: "UI" },
-      { label: "Review", status: "Monthly" }
-    ],
+    result: "Our AI layers handle 60–80% of repetitive queries without human involvement.",
+    nodes: ["Input", "AI Process", "Classify", "Route", "Output"],
   },
 ];
+
+const NODE_COLORS = ["#3b82f6", "#f59e0b", "#3b82f6", "#f59e0b", "#3b82f6"];
+
+function FlowDiagram({ nodes, active }: { nodes: string[]; active: boolean }) {
+  const linesRef = useRef<SVGPathElement[]>([]);
+
+  useEffect(() => {
+    if (!active) return;
+    linesRef.current.forEach((line, i) => {
+      if (!line) return;
+      const len = line.getTotalLength?.() ?? 60;
+      gsap.set(line, { strokeDasharray: len, strokeDashoffset: len });
+      gsap.to(line, {
+        strokeDashoffset: 0,
+        duration: 0.6,
+        delay: i * 0.15,
+        ease: "power2.out",
+      });
+    });
+  }, [active, nodes]);
+
+  return (
+    <div
+      style={{
+        background: "#0a0a0f",
+        border: "1px solid rgba(255,255,255,0.07)",
+        borderRadius: "16px",
+        padding: "32px 24px",
+        position: "relative",
+        minHeight: "280px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
+          alignItems: "center",
+          position: "relative",
+        }}
+      >
+        {nodes.map((node, i) => (
+          <div key={node} style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+            <div
+              style={{
+                padding: "10px 20px",
+                background: "#0f1017",
+                border: `1px solid ${NODE_COLORS[i % NODE_COLORS.length]}`,
+                borderRadius: "10px",
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "#f0f2ff",
+                boxShadow: `0 0 12px ${NODE_COLORS[i % NODE_COLORS.length]}30`,
+                animation: "nodeGlow 2s ease-in-out infinite alternate",
+                animationDelay: `${i * 0.3}s`,
+                minWidth: "140px",
+                textAlign: "center",
+              }}
+            >
+              {node}
+            </div>
+            {i < nodes.length - 1 && (
+              <svg width="2" height="24" style={{ overflow: "visible" }}>
+                <path
+                  ref={(el) => { if (el) linesRef.current[i] = el; }}
+                  d="M 1 0 L 1 24"
+                  stroke="#3b82f6"
+                  strokeWidth="2"
+                  strokeDasharray="4 4"
+                  fill="none"
+                />
+              </svg>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <style>{`
+        @keyframes nodeGlow {
+          from { box-shadow: 0 0 8px rgba(59,130,246,0.2); }
+          to { box-shadow: 0 0 16px rgba(59,130,246,0.4); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 export default function ServicesSection() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -185,14 +157,14 @@ export default function ServicesSection() {
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.fromTo(
-        `.${styles.heading}`,
+        ".svc-heading",
         { opacity: 0, y: 44 },
         {
           opacity: 1,
           y: 0,
           duration: 1,
           ease: "power3.out",
-          scrollTrigger: { trigger: `.${styles.heading}`, start: "top 85%", once: true },
+          scrollTrigger: { trigger: ".svc-heading", start: "top 82%", once: true },
         }
       );
     }, sectionRef);
@@ -202,102 +174,158 @@ export default function ServicesSection() {
   const tab = TABS[activeTab];
 
   return (
-    <section id="systems" ref={sectionRef} className={styles.section}>
-      <div className={styles.container}>
-        <div className={styles.heading}>
-          <span className={styles.eyebrow}>Control Center</span>
-          <h2 className={styles.title}>
-            Packaged AI operations systems, configured around your workflows.
+    <section id="services" ref={sectionRef} style={{ background: "#0a0a0f", padding: "120px 0" }}>
+      <div style={{ maxWidth: "var(--container-width)", margin: "0 auto", padding: "0 24px" }}>
+        {/* Header */}
+        <div className="svc-heading" style={{ textAlign: "center", marginBottom: "56px" }}>
+          <span
+            style={{
+              fontSize: "11px",
+              fontWeight: 700,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "var(--color-text-faint)",
+              display: "block",
+              marginBottom: "16px",
+            }}
+          >
+            What We Build
+          </span>
+          <h2
+            style={{
+              fontSize: "clamp(28px, 4vw, 48px)",
+              fontWeight: 800,
+              color: "#f0f2ff",
+              lineHeight: 1.1,
+              letterSpacing: "-0.025em",
+              maxWidth: "640px",
+              margin: "0 auto",
+            }}
+          >
+            We don&apos;t sell tools. We build the layer that makes your tools work together.
           </h2>
         </div>
 
-        <div className={styles.controlCenter}>
-          {/* Sidebar */}
-          <div className={styles.sidebar}>
-            {TABS.map((t, i) => (
-              <button
-                key={t.id}
-                className={`${styles.tab} ${activeTab === i ? styles.tabActive : ""}`}
-                onClick={() => setActiveTab(i)}
-                data-cursor="pointer"
-              >
-                <span className={styles.tabLabel}>{t.label}</span>
-                <span className={styles.tabSummary}>{t.summary}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Main Panel */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
-              className={styles.panel}
+        {/* Tab Bar */}
+        <div
+          style={{
+            background: "#0f1017",
+            borderRadius: "12px",
+            padding: "4px",
+            display: "inline-flex",
+            gap: "4px",
+            marginBottom: "40px",
+            border: "1px solid rgba(255,255,255,0.07)",
+          }}
+        >
+          {TABS.map((t, i) => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(i)}
+              style={{
+                padding: "10px 24px",
+                borderRadius: "8px",
+                border: "none",
+                cursor: "none",
+                fontSize: "14px",
+                fontWeight: 600,
+                background: activeTab === i ? "rgba(59,130,246,0.12)" : "transparent",
+                color: activeTab === i ? "#3b82f6" : "var(--color-text-faint)",
+                borderBottom: activeTab === i ? "2px solid #3b82f6" : "2px solid transparent",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== i) (e.target as HTMLButtonElement).style.color = "var(--color-text-muted)";
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== i) (e.target as HTMLButtonElement).style.color = "var(--color-text-faint)";
+              }}
             >
-              <div className={styles.panelHeader}>
-                <h3 className={styles.headline}>{tab.headline}</h3>
-                <p className={styles.description}>{tab.description}</p>
-              </div>
+              {t.label}
+            </button>
+          ))}
+        </div>
 
-              <div className={styles.detailGrid}>
-                <div className={styles.detailCard}>
-                  <span className={styles.detailLabel}>Problem solved</span>
-                  <p>{tab.problem}</p>
-                </div>
-                <div className={styles.detailCard}>
-                  <span className={styles.detailLabel}>Recommended for</span>
-                  <p>{tab.recommendedFor}</p>
-                </div>
-              </div>
+        {/* Panel */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "48px",
+              alignItems: "start",
+            }}
+            className="svc-panel"
+          >
+            {/* Left: Content */}
+            <div>
+              <h3
+                style={{
+                  fontSize: "clamp(20px, 3vw, 28px)",
+                  fontWeight: 700,
+                  color: "#f0f2ff",
+                  lineHeight: 1.2,
+                  marginBottom: "16px",
+                }}
+              >
+                {tab.headline}
+              </h3>
+              <p style={{ color: "var(--color-text-muted)", lineHeight: 1.7, marginBottom: "24px", fontSize: "15px" }}>
+                {tab.description}
+              </p>
 
-              {/* Diagram Area */}
-              <div className={styles.diagramArea}>
-                <div className={styles.diagramGrid} />
-                <div className={styles.nodesRow}>
-                  {tab.nodes.map((node, idx) => (
-                    <div key={idx} className={styles.nodeWrap}>
-                      <div className={styles.nodeWrapInner} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div className={`${styles.node} ${styles.nodeActive}`}>
-                          <span className={styles.nodeStatus}>{node.status}</span>
-                          {node.label}
-                        </div>
-                        {idx < tab.nodes.length - 1 && (
-                          <div className={`${styles.connector} ${styles.connectorActive}`} />
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Bullets */}
-              <div className={styles.workflowStrip}>
-                {tab.workflows.map((workflow) => (
-                  <span key={workflow}>{workflow}</span>
-                ))}
-              </div>
-
-              <div className={styles.bulletsGrid}>
-                {tab.bullets.slice(0, 4).map((b, i) => (
-                  <div key={i} className={styles.bullet}>
-                    <span><CheckCircle2 size={16} /></span>
-                    {b}
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "28px" }}>
+                {tab.bullets.map((b, i) => (
+                  <div key={i} style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                    <span
+                      style={{
+                        width: "6px",
+                        height: "6px",
+                        borderRadius: "50%",
+                        background: "#3b82f6",
+                        minWidth: "6px",
+                        marginTop: "8px",
+                      }}
+                    />
+                    <span style={{ fontSize: "14px", color: "var(--color-text-muted)", lineHeight: 1.6 }}>
+                      {b}
+                    </span>
                   </div>
                 ))}
               </div>
 
-              <div className={styles.resultLine}>
-                <strong>Deployment style:</strong> {tab.deploymentStyle}
-                <br />
+              <div
+                style={{
+                  padding: "16px 20px",
+                  background: "rgba(59,130,246,0.06)",
+                  border: "1px solid rgba(59,130,246,0.2)",
+                  borderRadius: "10px",
+                  fontSize: "14px",
+                  color: "var(--color-text-muted)",
+                  fontStyle: "italic",
+                  lineHeight: 1.6,
+                }}
+              >
                 {tab.result}
               </div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
+            </div>
+
+            {/* Right: Flow diagram */}
+            <FlowDiagram nodes={tab.nodes} active={true} />
+          </motion.div>
+        </AnimatePresence>
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .svc-panel { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </section>
   );
 }
