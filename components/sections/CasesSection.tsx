@@ -1,338 +1,243 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { gsap } from "@/lib/gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
+import styles from "./CasesSection.module.css";
 
 const CASES = [
   {
+    id: "SYSTEM PATTERN 01",
     category: "Sales",
-    badge: "E-commerce / Retail",
-    title: "WhatsApp AI Sales Bot + CRM Sync",
-    problem: "Sales managers spent 2–3 hours a day on data entry instead of selling. Leads were fast but qualification was entirely manual.",
-    pipeline: ["WhatsApp", "AI Qualify", "CRM Entry", "Manager Alert", "Follow-up"],
+    badge: "LeadOS + SalesOS",
+    title: "Inbound lead qualification and CRM routing",
+    problem: "Inbound demand arrives through multiple channels, but qualification, CRM entry, assignment, and first follow-up are still handled manually.",
+    pipeline: ["Lead In", "Qualify", "CRM Sync", "Assign", "Follow-up"],
     metrics: [
-      { value: "-83%", label: "Less time on lead qualification" },
-      { value: "+47%", label: "Leads followed up in 1hr" },
-      { value: "+22%", label: "Conversion on qualified leads" },
+      { value: "Example", label: "Impact range depends on lead volume" },
+      { value: "Hours", label: "Manual research and entry reduced" },
+      { value: "Cleaner", label: "Pipeline visibility for managers" },
     ],
-    quote: "We went from chasing leads to receiving them already qualified.",
-    author: "Head of Sales, fashion e-commerce brand",
+    quote: "The system creates a sales-ready record, routes it to the right person, and leaves a clear follow-up trail.",
+    author: "FlowOps OS pattern",
   },
   {
+    id: "SYSTEM PATTERN 02",
     category: "Operations",
-    badge: "E-commerce / Fulfillment",
-    title: "Shopify Orders → Operations Pipeline",
-    problem: "80–150 orders per day consumed two full-time employees on manual Slack messages, spreadsheet updates, and task assignments.",
-    pipeline: ["Order In", "Classify", "ClickUp Task", "Supplier Alert", "Customer Update"],
+    badge: "OpsOS",
+    title: "Order-to-operations execution layer",
+    problem: "New orders, requests, or internal jobs require manual task creation, status updates, supplier messages, and exception handling.",
+    pipeline: ["Work In", "Classify", "Create Task", "Notify", "Update"],
     metrics: [
-      { value: "2 FTE", label: "Manual coordination eliminated" },
-      { value: "100%", label: "Orders processed in 90 seconds" },
-      { value: "+34%", label: "On-time fulfillment rate" },
+      { value: "Mapped", label: "Handoffs and exceptions" },
+      { value: "Routed", label: "Tasks, owners, and alerts" },
+      { value: "Visible", label: "Operational status trail" },
     ],
-    quote: "We scaled from 80 to 300 orders a day without hiring anyone new.",
-    author: "Operations Director, home goods brand",
+    quote: "OpsOS turns recurring coordination into a structured workflow with human approval where it matters.",
+    author: "FlowOps OS pattern",
   },
   {
+    id: "SYSTEM PATTERN 03",
     category: "AI",
-    badge: "B2B SaaS / Professional Services",
-    title: "AI Lead Research & Outreach Pipeline",
-    problem: "Sales team spent 4–6 hours per day researching prospects. Only 2 hours of each day were actually spent selling.",
-    pipeline: ["Lead List", "AI Research", "Score", "Draft Outreach", "CRM + Send"],
+    badge: "ReportOS",
+    title: "Operational intelligence and monthly recommendations",
+    problem: "Leadership needs clear visibility into saved hours, lead flow, automation health, and bottlenecks without rebuilding reports manually.",
+    pipeline: ["Sources", "Normalize", "Metrics", "Dashboard", "Review"],
     metrics: [
-      { value: "-74%", label: "Time on pre-outreach research" },
-      { value: "3.2×", label: "Outreach volume per rep" },
-      { value: "+41%", label: "Reply rate vs templates" },
+      { value: "Health", label: "System status and exception signals" },
+      { value: "Flow", label: "Lead and workflow movement" },
+      { value: "Roadmap", label: "Next automation opportunities" },
     ],
-    quote: "Our reps used to dread prospecting. Now they spend their mornings approving AI-drafted emails.",
-    author: "VP Sales, B2B SaaS company",
+    quote: "ReportOS makes operations measurable enough to maintain, improve, and expand with discipline.",
+    author: "FlowOps OS pattern",
   },
 ];
 
-const FILTERS = ["All", "Sales", "Operations", "AI"];
+function WorkflowDiagram({ nodes }: { nodes: string[] }) {
+  return (
+    <div className={styles.diagramContainer}>
+      <svg width="100%" height="200" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Connection Lines */}
+        {nodes.map((_, i) => i < nodes.length - 1 && (
+          <motion.path
+            key={`line-${i}`}
+            d={`M ${60 + i * 70} 100 L ${60 + (i + 1) * 70} 100`}
+            stroke="rgba(59, 130, 246, 0.2)"
+            strokeWidth="1"
+            initial={{ pathLength: 0 }}
+            whileInView={{ pathLength: 1 }}
+            transition={{ duration: 1, delay: i * 0.2 }}
+          />
+        ))}
+        
+        {/* Shimmer on Lines */}
+        {nodes.map((_, i) => i < nodes.length - 1 && (
+          <motion.path
+            key={`shimmer-${i}`}
+            d={`M ${60 + i * 70} 100 L ${60 + (i + 1) * 70} 100`}
+            stroke="var(--color-primary)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ 
+              pathLength: [0, 1, 1],
+              pathOffset: [0, 0, 1],
+              opacity: [0, 1, 0]
+            }}
+            transition={{ 
+              duration: 2, 
+              repeat: Infinity, 
+              delay: i * 0.5,
+              ease: "easeInOut"
+            }}
+          />
+        ))}
+
+        {/* Nodes */}
+        {nodes.map((node, i) => (
+          <g key={`node-group-${i}`} transform={`translate(${60 + i * 70 - 30}, 85)`}>
+            <motion.rect
+              width="60"
+              height="30"
+              rx="6"
+              fill="rgba(15, 16, 23, 0.9)"
+              stroke="rgba(59, 130, 246, 0.4)"
+              strokeWidth="1"
+              initial={{ scale: 0.8, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              transition={{ delay: i * 0.15 }}
+            />
+            <foreignObject x="0" y="0" width="60" height="30">
+              <div style={{ 
+                width: '100%', 
+                height: '100%', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                fontSize: '7px',
+                fontWeight: 700,
+                color: '#fff',
+                textAlign: 'center',
+                padding: '2px',
+                textTransform: 'uppercase'
+              }}>
+                {node}
+              </div>
+            </foreignObject>
+            {/* Pulsing Dot */}
+            <motion.circle
+              cx="30"
+              cy="0"
+              r="2"
+              fill="var(--color-primary)"
+              animate={{ opacity: [0.3, 1, 0.3], scale: [1, 1.5, 1] }}
+              transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
+            />
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
 
 function CaseCard({ c }: { c: typeof CASES[0] }) {
-  const [hovered, setHovered] = useState(false);
-
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 32 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.96 }}
-      transition={{ duration: 0.4 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: "#0f1017",
-        border: `1px solid ${hovered ? "rgba(59,130,246,0.3)" : "rgba(255,255,255,0.07)"}`,
-        borderRadius: "16px",
-        overflow: "hidden",
-        transform: hovered ? "translateY(-4px)" : "translateY(0)",
-        boxShadow: hovered ? "var(--shadow-blue)" : "none",
-        transition: "border-color 0.25s, transform 0.25s, box-shadow 0.25s",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      {/* Top */}
-      <div style={{ padding: "20px 20px 0" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-          <span
-            style={{
-              background: "rgba(59,130,246,0.1)",
-              color: "#60a5fa",
-              fontSize: "11px",
-              fontWeight: 600,
-              padding: "4px 10px",
-              borderRadius: "100px",
-              letterSpacing: "0.04em",
-            }}
-          >
-            {c.badge}
-          </span>
-        </div>
-        <h3
-          style={{
-            fontSize: "16px",
-            fontWeight: 700,
-            color: "#f0f2ff",
-            lineHeight: 1.3,
-            marginBottom: "12px",
-          }}
-        >
-          {c.title}
-        </h3>
-        <p
-          style={{
-            fontSize: "13px",
-            color: "var(--color-text-muted)",
-            lineHeight: 1.6,
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            marginBottom: "16px",
-          }}
-        >
-          {c.problem}
-        </p>
-
-        {/* Mini pipeline */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-            marginBottom: "16px",
-            flexWrap: "wrap",
-          }}
-        >
-          {c.pipeline.map((node, i) => (
-            <div key={node} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-              <span
-                style={{
-                  fontSize: "10px",
-                  fontWeight: 600,
-                  color: "var(--color-text-faint)",
-                  background: "rgba(255,255,255,0.05)",
-                  padding: "3px 8px",
-                  borderRadius: "6px",
-                  border: "1px solid rgba(255,255,255,0.07)",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {node}
-              </span>
-              {i < c.pipeline.length - 1 && (
-                <span style={{ color: "var(--color-text-faint)", fontSize: "10px" }}>→</span>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Metrics */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          borderTop: "1px solid rgba(255,255,255,0.07)",
-          borderBottom: "1px solid rgba(255,255,255,0.07)",
-        }}
-      >
-        {c.metrics.map((m, i) => (
-          <div
-            key={i}
-            style={{
-              padding: "12px 8px",
-              borderRight: i < 2 ? "1px solid rgba(255,255,255,0.07)" : "none",
-              textAlign: "center",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "18px",
-                fontWeight: 800,
-                color: "#f59e0b",
-                lineHeight: 1,
-                marginBottom: "4px",
-              }}
-            >
-              {m.value}
-            </div>
-            <div style={{ fontSize: "10px", color: "var(--color-text-faint)", lineHeight: 1.4 }}>
-              {m.label}
-            </div>
+    <div className={`${styles.cardWrapper} case-card-wrapper`}>
+      <div className={styles.card} data-cursor="glow">
+        <div className={styles.cardOverlay} />
+        <div className={styles.scanline} />
+        
+        {/* Left: Content */}
+        <div className={styles.content}>
+          <div className={styles.missionId}>{c.id}</div>
+          <h3 className={styles.cardTitle}>{c.title}</h3>
+          
+          <div className={styles.label}>Operational Context</div>
+          <p className={styles.problem}>{c.problem}</p>
+          
+          <div className={styles.label}>System Effect</div>
+          <div className={styles.resultsGrid}>
+            {c.metrics.map((m, i) => (
+              <div key={i}>
+                <div className={styles.metricValue}>{m.value}</div>
+                <div className={styles.metricLabel}>{m.label}</div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Quote */}
-      <div style={{ padding: "16px 20px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-        <p
-          style={{
-            fontSize: "13px",
-            color: "var(--color-text-muted)",
-            fontStyle: "italic",
-            lineHeight: 1.7,
-            borderLeft: "2px solid rgba(59,130,246,0.4)",
-            paddingLeft: "12px",
-            marginBottom: "16px",
-          }}
-        >
-          &ldquo;{c.quote}&rdquo;
-        </p>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: "11px", color: "var(--color-text-faint)" }}>— {c.author}</span>
-          <button
-            style={{
-              background: "none",
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: "var(--color-text-muted)",
-              padding: "6px 14px",
-              borderRadius: "6px",
-              fontSize: "12px",
-              cursor: "none",
-              transition: "border-color 0.2s, color 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              const btn = e.target as HTMLButtonElement;
-              btn.style.borderColor = "#3b82f6";
-              btn.style.color = "#60a5fa";
-            }}
-            onMouseLeave={(e) => {
-              const btn = e.target as HTMLButtonElement;
-              btn.style.borderColor = "rgba(255,255,255,0.1)";
-              btn.style.color = "var(--color-text-muted)";
-            }}
-          >
-            Read full case →
-          </button>
+        {/* Right: Visuals */}
+        <div className={styles.visuals}>
+          <div className={styles.systemLabel}>SYSTEM MODEL / READY</div>
+          <div className={styles.label} style={{ marginBottom: 0 }}>Workflow Architecture</div>
+          
+          <WorkflowDiagram nodes={c.pipeline} />
+          
+          <div className={styles.quoteBox}>
+            <p className={styles.quote}>&ldquo;{c.quote}&rdquo;</p>
+            <div className={styles.author}>— {c.author}</div>
+          </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 export default function CasesSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const [filter, setFilter] = useState("All");
+  const stackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
+      const cards = gsap.utils.toArray<HTMLElement>(".case-card-wrapper");
+      
+      cards.forEach((card, i) => {
+        if (i === cards.length - 1) return; // Don't animate last card's exit
+        
+        gsap.to(card, {
+          scale: 0.9,
+          opacity: 0.4,
+          filter: "blur(10px)",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 100px",
+            end: "bottom 100px",
+            scrub: true,
+          },
+        });
+      });
+
+      // Heading animation
       gsap.fromTo(
-        ".cases-heading",
-        { opacity: 0, y: 44 },
+        ".cases-header",
+        { opacity: 0, y: 40 },
         {
           opacity: 1,
           y: 0,
           duration: 1,
           ease: "power3.out",
-          scrollTrigger: { trigger: ".cases-heading", start: "top 82%", once: true },
+          scrollTrigger: { trigger: ".cases-header", start: "top 85%", once: true },
         }
       );
     }, sectionRef);
     return () => ctx.revert();
   }, []);
 
-  const filtered =
-    filter === "All" ? CASES : CASES.filter((c) => c.category === filter);
-
   return (
-    <section id="cases" ref={sectionRef} style={{ background: "#000000", padding: "120px 0" }}>
-      <div style={{ maxWidth: "var(--container-width)", margin: "0 auto", padding: "0 24px" }}>
-        {/* Header */}
-        <div className="cases-heading" style={{ textAlign: "center", marginBottom: "48px" }}>
-          <span
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "var(--color-text-faint)",
-              display: "block",
-              marginBottom: "16px",
-            }}
-          >
-            Live Results
-          </span>
-          <h2
-            style={{
-              fontSize: "clamp(28px, 4vw, 48px)",
-              fontWeight: 800,
-              color: "#f0f2ff",
-              lineHeight: 1.1,
-              letterSpacing: "-0.025em",
-              maxWidth: "640px",
-              margin: "0 auto 16px",
-            }}
-          >
-            Not concepts. Not mockups. Systems running in production right now.
+    <section id="cases" ref={sectionRef} className={styles.section}>
+      <div className={styles.container}>
+        <div className={`${styles.header} cases-header`}>
+          <span className={styles.eyebrow}>Cases / System Patterns</span>
+          <h2 className={styles.title}>
+            Proof should look like operating improvements, not disconnected automations.
           </h2>
         </div>
 
-        {/* Filters */}
-        <div style={{ display: "flex", gap: "8px", marginBottom: "40px", justifyContent: "center", flexWrap: "wrap" }}>
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              style={{
-                background: filter === f ? "#3b82f6" : "#0f1017",
-                color: filter === f ? "white" : "var(--color-text-muted)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                padding: "8px 20px",
-                borderRadius: "100px",
-                fontSize: "13px",
-                fontWeight: 600,
-                cursor: "none",
-                transition: "background 0.2s, color 0.2s",
-              }}
-            >
-              {f}
-            </button>
+        <div className={styles.stackContainer} ref={stackRef}>
+          {CASES.map((c) => (
+            <CaseCard key={c.id} c={c} />
           ))}
         </div>
-
-        {/* Cards Grid */}
-        <motion.div
-          layout
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-            gap: "20px",
-          }}
-        >
-          <AnimatePresence>
-            {filtered.map((c) => (
-              <CaseCard key={c.title} c={c} />
-            ))}
-          </AnimatePresence>
-        </motion.div>
       </div>
     </section>
   );

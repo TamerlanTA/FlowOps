@@ -1,27 +1,27 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { gsap } from "@/lib/gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { Check, X } from "lucide-react";
 
-gsap.registerPlugin(ScrollTrigger);
+import styles from "./BeforeAfterSection.module.css";
 
 const BEFORE_ITEMS = [
-  "Leads logged manually into CRM (when someone remembers)",
-  "Reports assembled from 4 different spreadsheets on Fridays",
-  "Handoffs happen over Slack and are frequently dropped",
-  "Customer updates sent manually, inconsistently, or not at all",
-  "Operations depend on one person who “knows how it works”",
-  "No visibility into what's happening until it's already a problem",
+  "Manual follow-up",
+  "Spreadsheet reports",
+  "Lost handoffs",
+  "Tool chaos",
+  "Tribal knowledge",
+  "No visibility",
 ];
 
 const AFTER_ITEMS = [
-  "Every lead captured, qualified, and routed automatically — in seconds",
-  "Reports generated and sent on schedule without anyone touching them",
-  "Handoffs are structured workflows with confirmations and escalations",
-  "Customers receive status updates at every stage, automatically",
-  "The system runs the process — your team executes the decisions",
-  "Live dashboards show what's happening in real time, always",
+  "AI routing",
+  "CRM sync",
+  "Auto follow-up",
+  "Live dashboard",
+  "Structured workflows",
+  "Data-driven scale",
 ];
 
 const METRICS = [
@@ -48,77 +48,85 @@ function useCountUp(target: number, duration = 1500, start = false) {
   return value;
 }
 
-function MetricCard({ metric, counting }: { metric: typeof METRICS[0]; counting: boolean }) {
+function MetricCard({ metric, counting, index }: { metric: typeof METRICS[0]; counting: boolean; index: number }) {
   const val = useCountUp(metric.value, 1500, counting);
+  // Consistent signal logic: Amber for reduction/loss (-), Blue for growth/system (+)
+  const color = metric.prefix === "-" ? "var(--color-accent)" : index === 1 ? "var(--color-primary)" : "#f0f2ff";
+  
   return (
-    <div style={{ textAlign: "center", padding: "24px 16px" }}>
-      <div
-        style={{
-          fontSize: "clamp(28px, 4vw, 48px)",
-          fontWeight: 800,
-          color: "#f0f2ff",
-          lineHeight: 1,
-          letterSpacing: "-0.02em",
-        }}
-      >
-        {metric.prefix}
-        {val}
-        {metric.suffix}
+    <div className={styles.metricCard}>
+      <div className={styles.metricValue} style={{ color }}>
+        {metric.prefix}{val}{metric.suffix}
       </div>
-      <div style={{ color: "var(--color-text-faint)", fontSize: "12px", marginTop: "8px" }}>
-        {metric.label}
-      </div>
+      <div className={styles.metricLabel}>{metric.label}</div>
     </div>
   );
 }
 
 export default function BeforeAfterSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const svgLineRef = useRef<SVGLineElement>(null);
+  const chaosRef = useRef<HTMLDivElement>(null);
+  const flowRef = useRef<HTMLDivElement>(null);
   const metricRef = useRef<HTMLDivElement>(null);
+  const linesRef = useRef<SVGPolylineElement[]>([]);
   const [counting, setCounting] = useState(false);
+  const [activeFlow, setActiveFlow] = useState(false);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
+      // Heading
       gsap.fromTo(
-        ".ba-heading",
+        `.${styles.heading}`,
         { opacity: 0, y: 44 },
         {
           opacity: 1,
           y: 0,
           duration: 1,
           ease: "power3.out",
-          scrollTrigger: { trigger: ".ba-heading", start: "top 82%", once: true },
+          scrollTrigger: { trigger: `.${styles.heading}`, start: "top 85%", once: true },
         }
       );
 
-      gsap.fromTo(
-        ".ba-col",
-        { opacity: 0, y: 32 },
-        {
+      // Chaos Cards Scattering
+      const chaosCards = gsap.utils.toArray<HTMLElement>(`.${styles.chaosCard}`);
+      chaosCards.forEach((card, i) => {
+        const x = (Math.random() - 0.5) * 200;
+        const y = (Math.random() - 0.5) * 300;
+        const rotate = (Math.random() - 0.5) * 30;
+        
+        gsap.set(card, { x, y, rotate, opacity: 0 });
+        
+        gsap.to(card, {
           opacity: 1,
-          y: 0,
-          duration: 0.85,
-          ease: "power3.out",
-          stagger: 0.15,
-          scrollTrigger: { trigger: ".ba-col", start: "top 82%", once: true },
-        }
-      );
-
-      // SVG line draw on scroll
-      if (svgLineRef.current) {
-        const len = svgLineRef.current.getTotalLength?.() ?? 300;
-        gsap.set(svgLineRef.current, { strokeDasharray: len, strokeDashoffset: len });
-        gsap.to(svgLineRef.current, {
-          strokeDashoffset: 0,
-          duration: 1.5,
-          ease: "power2.out",
-          scrollTrigger: { trigger: svgLineRef.current, start: "top 82%", once: true },
+          duration: 0.8,
+          delay: i * 0.1,
+          scrollTrigger: { trigger: chaosRef.current, start: "top 70%", once: true }
         });
-      }
+      });
+
+      // Flow Animation
+      ScrollTrigger.create({
+        trigger: `.${styles.scene}`,
+        start: "top 50%",
+        onEnter: () => {
+          setActiveFlow(true);
+          
+          // Draw lines
+          linesRef.current.forEach((line) => {
+            if (!line) return;
+            const len = line.getTotalLength?.() ?? 200;
+            gsap.set(line, { strokeDasharray: len, strokeDashoffset: len });
+            gsap.to(line, {
+              strokeDashoffset: 0,
+              duration: 1.2,
+              ease: "power2.inOut"
+            });
+          });
+        }
+      });
+
     }, sectionRef);
 
-    // Metric counting trigger
     if (metricRef.current) {
       const obs = new IntersectionObserver(
         ([entry]) => { if (entry.isIntersecting) setCounting(true); },
@@ -135,194 +143,70 @@ export default function BeforeAfterSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} style={{ background: "#000000", padding: "120px 0" }}>
-      <div style={{ maxWidth: "var(--container-width)", margin: "0 auto", padding: "0 24px" }}>
-        {/* Header */}
-        <div className="ba-heading" style={{ textAlign: "center", marginBottom: "64px" }}>
-          <span
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "var(--color-text-faint)",
-              display: "block",
-              marginBottom: "16px",
-            }}
-          >
-            Before vs After FlowOps
-          </span>
-          <h2
-            style={{
-              fontSize: "clamp(28px, 4vw, 48px)",
-              fontWeight: 800,
-              color: "#f0f2ff",
-              lineHeight: 1.1,
-              letterSpacing: "-0.025em",
-              maxWidth: "640px",
-              margin: "0 auto",
-            }}
-          >
+    <section ref={sectionRef} className={styles.section} id="before-after">
+      <div className={styles.container}>
+        <div className={styles.heading}>
+          <span className={styles.eyebrow}>Before vs After</span>
+          <h2 className={styles.title}>
             Same team. Same tools. A completely different operating reality.
           </h2>
         </div>
 
-        {/* Columns */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 40px 1fr",
-            gap: "0",
-            alignItems: "start",
-          }}
-          className="ba-grid"
-        >
-          {/* BEFORE */}
-          <div
-            className="ba-col"
-            style={{
-              background: "#0f1017",
-              borderRadius: "16px",
-              overflow: "hidden",
-              opacity: 0,
-            }}
-          >
-            <div
-              style={{
-                padding: "20px 24px",
-                borderBottom: "1px solid rgba(255,255,255,0.07)",
-                background: "rgba(239,68,68,0.05)",
-              }}
-            >
-              <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--color-text-muted)" }}>
-                Without FlowOps
-              </span>
-            </div>
-            <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: "16px" }}>
-              {BEFORE_ITEMS.map((item, i) => (
-                <div key={i} style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                  <span style={{ color: "rgba(239,68,68,0.7)", fontWeight: 700, minWidth: "16px", marginTop: "2px" }}>
-                    ✗
-                  </span>
-                  <span style={{ fontSize: "14px", color: "var(--color-text-muted)", lineHeight: 1.6 }}>
-                    {item}
-                  </span>
-                </div>
-              ))}
-            </div>
+        <div className={styles.scene}>
+          {/* Chaos Side */}
+          <div ref={chaosRef} className={styles.chaosColumn}>
+            <div className={styles.warningGlow} />
+            {BEFORE_ITEMS.map((item, i) => (
+              <div key={i} className={styles.chaosCard}>
+                <span><X size={14} /></span>
+                {item}
+              </div>
+            ))}
           </div>
 
-          {/* SVG Divider */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-              minHeight: "300px",
-              position: "relative",
-            }}
-          >
-            <svg width="40" height="100%" viewBox="0 0 40 400" preserveAspectRatio="none" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}>
-              <line
-                ref={svgLineRef}
-                x1="20"
-                y1="0"
-                x2="20"
-                y2="400"
-                stroke="rgba(255,255,255,0.15)"
-                strokeWidth="1"
-              />
+          {/* Bridge */}
+          <div className={styles.bridge}>
+            <svg width="120" height="500" style={{ position: "absolute", overflow: "visible" }}>
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <polyline
+                  key={i}
+                  ref={(el) => { if (el) linesRef.current[i] = el; }}
+                  points={`0,${150 + i * 40} 60,250 120,${150 + i * 40}`}
+                  fill="none"
+                  stroke={activeFlow ? "#3b82f6" : "rgba(239, 68, 68, 0.2)"}
+                  strokeWidth="1.5"
+                  className={styles.flowLine}
+                />
+              ))}
             </svg>
-            <div
-              style={{
-                zIndex: 1,
-                width: "32px",
-                height: "32px",
-                borderRadius: "50%",
-                background: "#0f1017",
-                border: "1px solid rgba(255,255,255,0.15)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "14px",
-                color: "var(--color-text-faint)",
-              }}
-            >
-              →
+            <div className={styles.flowOpsLayer} data-cursor="pointer">
+              F
             </div>
           </div>
 
-          {/* AFTER */}
-          <div
-            className="ba-col"
-            style={{
-              background: "#0f1017",
-              borderRadius: "16px",
-              overflow: "hidden",
-              opacity: 0,
-            }}
-          >
-            <div
-              style={{
-                padding: "20px 24px",
-                borderBottom: "1px solid rgba(255,255,255,0.07)",
-                background: "rgba(59,130,246,0.05)",
-              }}
-            >
-              <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--color-primary)" }}>
-                With FlowOps
-              </span>
-            </div>
-            <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: "16px" }}>
-              {AFTER_ITEMS.map((item, i) => (
-                <div key={i} style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                  <span style={{ color: "#3b82f6", fontWeight: 700, minWidth: "16px", marginTop: "2px" }}>
-                    ✓
-                  </span>
-                  <span style={{ fontSize: "14px", color: "var(--color-text-muted)", lineHeight: 1.6 }}>
-                    {item}
-                  </span>
-                </div>
-              ))}
-            </div>
+          {/* Flow Side */}
+          <div ref={flowRef} className={styles.flowColumn}>
+            <div className={styles.systemGlow} />
+            {AFTER_ITEMS.map((item, i) => (
+              <div 
+                key={i} 
+                className={`${styles.flowCard} ${activeFlow ? styles.flowCardActive : ""}`}
+                style={{ transitionDelay: `${i * 0.1}s` }}
+              >
+                <span><Check size={16} /></span>
+                {item}
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Metric Bar */}
-        <div
-          ref={metricRef}
-          style={{
-            marginTop: "48px",
-            background: "#0f1017",
-            border: "1px solid rgba(255,255,255,0.07)",
-            borderRadius: "16px",
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            overflow: "hidden",
-          }}
-          className="ba-metrics"
-        >
+        <div ref={metricRef} className={styles.metricsBar}>
           {METRICS.map((m, i) => (
-            <div
-              key={i}
-              style={{
-                borderRight: i < 3 ? "1px solid rgba(255,255,255,0.07)" : "none",
-              }}
-            >
-              <MetricCard metric={m} counting={counting} />
-            </div>
+            <MetricCard key={i} metric={m} counting={counting} index={i} />
           ))}
         </div>
       </div>
-
-      <style>{`
-        @media (max-width: 768px) {
-          .ba-grid { grid-template-columns: 1fr !important; }
-          .ba-metrics { grid-template-columns: 1fr 1fr !important; }
-        }
-      `}</style>
     </section>
   );
 }
